@@ -10,7 +10,6 @@ const photos = [
   "/foto11.jpeg", "/foto12.jpeg", "/foto13.jpeg"
 ]
 
-// Daftar 81 Nama Terbaru
 const GH27_STUDENTS = [
   "ABRISAM YAHYA", "AGHNIY AQILAH", "AISHA NASHIFA", "AISHAKIRANA MAULIDA SUBARKAH",
   "AISYA NABILA", "ALTHAF AQIELA WICAKSONO", "ALVARO PRANADHAFA LANDRYE", "ANNIDA MAHRUS",
@@ -227,12 +226,10 @@ export default function ShaderBackgroundDemo() {
   return (
     <div className="relative min-h-screen w-full text-white selection:bg-cyan-500 selection:text-black">
       
-      {/* FIXED BACKGROUND ANTIGLITCH */}
       <div className="fixed top-0 left-0 w-full h-[100dvh] z-0 pointer-events-none bg-black overflow-hidden transform-gpu">
         <ShaderBackground className="h-full w-full" />
       </div>
 
-      {/* FIXED NAVBAR */}
       <header className="fixed top-0 left-0 w-full z-50 px-4 py-4 md:px-12">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-5 py-3 bg-black/40 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] rounded-full">
           <div onClick={() => scrollToSection("home")} className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight cursor-pointer select-none">
@@ -265,10 +262,7 @@ export default function ShaderBackgroundDemo() {
         )}
       </header>
 
-      {/* MAIN SCROLLABLE CONTENT */}
       <main className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-28 md:pt-36 pb-24 space-y-24 md:space-y-32">
-
-        {/* SECTION 1: HOME & GALLERY SLIDER */}
         <section id="home" className="scroll-mt-32 flex flex-col items-center text-center">
           <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-300 tracking-wider uppercase">
             Angkatan 27 • 81 Members
@@ -296,7 +290,6 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
-        {/* SECTION 2: ABOUT, RUNDOWN & DESTINASI */}
         <section id="about" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">About GH27 Vacation</h2>
@@ -313,7 +306,7 @@ export default function ShaderBackgroundDemo() {
             {aboutSubTab === "tentang" && (
               <div className="space-y-4 text-sm sm:text-base leading-relaxed">
                 <h3 className="text-xl font-bold text-cyan-300">Momen Perpisahan & Kebersamaan</h3>
-                <p className="text-white/80">Acara ini diselenggarakan sebagai momen perpisahan dan kebersamaan bagi 81 penghuni GH27 sebelum melanjutkan pendidikan ke perguruan tinggi.</p>
+                <p className="text-white/80">Acara ini diselenggarakan sebagai momen perpisahan dan kebersamaan bagi GH27 sebelum melanjutkan pendidikan ke perguruan tinggi masing-masing. Melalui kegiatan ini, diharapkan terciptanya kenangan yang indah dan mempererat tali silaturahmi, serta menjadi penutup yang berkesan.</p>
                 <div className="bg-white/5 border border-white/10 p-4 sm:p-5 rounded-2xl mt-4">
                   <h4 className="font-semibold text-yellow-300 mb-3">Fasilitas Akomodasi:</h4>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-white/85 text-sm">
@@ -354,17 +347,28 @@ export default function ShaderBackgroundDemo() {
             {aboutSubTab === "destinasi" && (
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-cyan-300">Destinasi Utama</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><div className="font-bold text-yellow-300 text-base mb-1">Green Canyon</div><p className="text-xs text-white/70">Sungai & tebing eksotis</p></div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><div className="font-bold text-yellow-300 text-base mb-1">Pantai Madasari</div><p className="text-xs text-white/70">Pantai pesisir luas</p></div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><div className="font-bold text-yellow-300 text-base mb-1">Citumang</div><p className="text-xs text-white/70">Body rafting air jernih</p></div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
+                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" />
+                    <div className="font-bold text-yellow-300 text-base mb-1">Green Canyon</div>
+                    <p className="text-xs text-white/70">Sungai & tebing eksotis</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
+                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" />
+                    <div className="font-bold text-yellow-300 text-base mb-1">Pantai Madasari</div>
+                    <p className="text-xs text-white/70">Pantai pesisir luas</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
+                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" />
+                    <div className="font-bold text-yellow-300 text-base mb-1">Citumang</div>
+                    <p className="text-xs text-white/70">Body rafting air jernih</p>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </section>
 
-        {/* SECTION 3: PAYMENT */}
         <section id="payment" className="scroll-mt-28 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Form Setoran Tabungan</h2>
@@ -413,7 +417,6 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
-        {/* SECTION 4: MONEY SAVES */}
         <section id="money-saves" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-green-400">Rekapitulasi Tabungan 81 Siswa</h2>
@@ -500,10 +503,9 @@ export default function ShaderBackgroundDemo() {
       </main>
 
       <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-md py-6 text-center text-xs text-white/50">
-        © 2026 GH27 Vacation • Angkatan 27
+        © 2026 fahryrizky.my.id
       </footer>
 
-      {/* POPUP MODAL PREVIEW */}
       {previewImage && (
         <div onClick={() => setPreviewImage(null)} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer">
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
