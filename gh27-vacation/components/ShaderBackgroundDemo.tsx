@@ -74,6 +74,40 @@ const rundownData = [
   }
 ];
 
+// === KOMPONEN SLIDER FASILITAS (HOTEL & BIS) ===
+const FacilitySlider = ({ images, title, onImageClick }: { images: string[], title: string, onImageClick: (img: string) => void }) => {
+  const [idx, setIdx] = useState(0);
+  
+  const next = (e: React.MouseEvent) => { 
+    e.stopPropagation(); 
+    setIdx((prev) => (prev + 1) % images.length); 
+  };
+  const prev = (e: React.MouseEvent) => { 
+    e.stopPropagation(); 
+    setIdx((prev) => (prev - 1 + images.length) % images.length); 
+  };
+
+  return (
+    <div className="flex flex-col w-full bg-black/20 p-3 rounded-2xl border border-white/10 shadow-inner">
+      <p className="text-cyan-300 font-bold mb-2 text-sm text-center">{title}</p>
+      <div className="relative w-full aspect-video bg-black/40 rounded-xl overflow-hidden group cursor-pointer shadow-md border border-white/5" onClick={() => onImageClick(images[idx])}>
+        <button onClick={prev} className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white w-7 h-7 flex items-center justify-center rounded-full border border-white/20 transition-all text-xs">❮</button>
+        <img src={images[idx]} alt={title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <button onClick={next} className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/80 text-white w-7 h-7 flex items-center justify-center rounded-full border border-white/20 transition-all text-xs">❯</button>
+        <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-md text-white/90 text-[10px] px-2 py-1 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+          🔍 {idx + 1}/{images.length}
+        </div>
+      </div>
+      {/* Dots Indicator */}
+      <div className="flex justify-center gap-1.5 mt-3">
+        {images.map((_, i) => (
+          <div key={i} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-5 bg-cyan-400" : "w-1.5 bg-white/30"}`} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function ShaderBackgroundDemo() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -312,12 +346,26 @@ export default function ShaderBackgroundDemo() {
                 <p className="text-white/80">Acara ini diselenggarakan sebagai momen perpisahan dan kebersamaan bagi GH27 sebelum melanjutkan pendidikan ke perguruan tinggi masing-masing. Melalui kegiatan ini, diharapkan terciptanya kenangan yang indah dan mempererat tali silaturahmi, serta menjadi penutup yang berkesan.</p>
                 <div className="bg-white/5 border border-white/10 p-4 sm:p-5 rounded-2xl mt-4">
                   <h4 className="font-semibold text-yellow-300 mb-3">Fasilitas Akomodasi:</h4>
-                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-white/85 text-sm">
-                    <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Tempat Penginapan</li>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-white/85 text-sm mb-6">
+                    <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Tempat Penginapan (Villa)</li>
                     <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Bus Pariwisata</li>
                     <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Makan & Minum (8 Kali)</li>
                     <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Tiket Pariwisata & Snack</li>
                   </ul>
+
+                  {/* SLIDER HOTEL DAN BIS */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                    <FacilitySlider 
+                      title="Fasilitas Penginapan" 
+                      images={["/hotel1.jpeg", "/hotel2.jpeg", "/hotel3.jpeg"]} 
+                      onImageClick={setPreviewImage} 
+                    />
+                    <FacilitySlider 
+                      title="Armada Bus Pariwisata" 
+                      images={["/bus1.jpeg", "/bus2.jpeg", "/bus3.jpeg"]} 
+                      onImageClick={setPreviewImage} 
+                    />
+                  </div>
                 </div>
               </div>
             )}
@@ -352,17 +400,17 @@ export default function ShaderBackgroundDemo() {
                 <h3 className="text-xl font-bold text-cyan-300">Destinasi Utama</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/greencanyon.jfif" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/greencanyon.jfif")} />
+                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/greencanyon.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Green Canyon</div>
                     <p className="text-xs text-white/70">Sungai & tebing eksotis</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/madasari.jfif" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/madasari.jfif")} />
+                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/madasari.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Pantai Madasari</div>
                     <p className="text-xs text-white/70">Pantai pesisir luas</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/citumang.jfif" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/citumang.jfif")} />
+                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/citumang.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Citumang</div>
                     <p className="text-xs text-white/70">Body rafting air jernih</p>
                   </div>
@@ -372,7 +420,7 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
-        {/* PAYMENT SECTION (DENGAN QRIS BARU) */}
+        {/* PAYMENT SECTION */}
         <section id="payment" className="scroll-mt-28 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Form Setoran Tabungan</h2>
@@ -409,15 +457,14 @@ export default function ShaderBackgroundDemo() {
                 </select>
               </div>
 
-              {/* TAMPILAN GAMBAR QRIS (HANYA MUNCUL JIKA METODE = QRIS) */}
               {paymentMethod === "QRIS" && (
                 <div className="flex flex-col items-center bg-white/5 p-4 rounded-2xl border border-white/10 transition-all">
                   <p className="text-xs text-white/80 mb-3 font-medium">Scan QRIS di bawah ini:</p>
                   <img 
-                    src="/qris.jpg" 
+                    src="/qris.jpeg" 
                     alt="QRIS GH27" 
                     className="w-48 sm:w-52 rounded-xl shadow-lg border border-white/20 cursor-pointer hover:scale-105 transition-transform" 
-                    onClick={() => setPreviewImage("/qris.jpg")}
+                    onClick={() => setPreviewImage("/qris.jpeg")}
                     title="Klik untuk perbesar QRIS"
                   />
                   <p className="text-[11px] text-cyan-300 mt-3 font-bold tracking-wider">GH27 100% PTN, DIGITAL</p>
@@ -533,9 +580,9 @@ export default function ShaderBackgroundDemo() {
 
       {/* POPUP MODAL PREVIEW */}
       {previewImage && (
-        <div onClick={() => setPreviewImage(null)} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer">
+        <div onClick={() => setPreviewImage(null)} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer z-[100]">
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
-            <button onClick={() => setPreviewImage(null)} className="absolute -top-12 right-0 text-white bg-white/20 hover:bg-white/40 border border-white/20 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm transition-all">✕</button>
+            <button onClick={() => setPreviewImage(null)} className="absolute -top-12 right-0 text-white bg-white/20 hover:bg-white/40 border border-white/20 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm transition-all shadow-lg">✕</button>
             <img src={previewImage} alt="Preview Zoom" className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/20 shadow-2xl bg-black/50" />
             <p className="text-xs text-white/60 mt-3">Klik di mana saja untuk menutup</p>
           </div>
