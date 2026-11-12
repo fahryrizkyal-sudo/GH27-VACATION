@@ -263,6 +263,8 @@ export default function ShaderBackgroundDemo() {
       </header>
 
       <main className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-28 md:pt-36 pb-24 space-y-24 md:space-y-32">
+        
+        {/* HOME SECTION */}
         <section id="home" className="scroll-mt-32 flex flex-col items-center text-center">
           <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-300 tracking-wider uppercase">
             Angkatan 27 • 81 Members
@@ -290,6 +292,7 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
+        {/* ABOUT SECTION */}
         <section id="about" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">About GH27 Vacation</h2>
@@ -349,17 +352,17 @@ export default function ShaderBackgroundDemo() {
                 <h3 className="text-xl font-bold text-cyan-300">Destinasi Utama</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" />
+                    <img src="/greencanyon.jfif" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/greencanyon.jfif")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Green Canyon</div>
                     <p className="text-xs text-white/70">Sungai & tebing eksotis</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" />
+                    <img src="/madasari.jfif" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/madasari.jfif")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Pantai Madasari</div>
                     <p className="text-xs text-white/70">Pantai pesisir luas</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" />
+                    <img src="/citumang.jfif" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/citumang.jfif")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Citumang</div>
                     <p className="text-xs text-white/70">Body rafting air jernih</p>
                   </div>
@@ -369,6 +372,7 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
+        {/* PAYMENT SECTION (DENGAN QRIS BARU) */}
         <section id="payment" className="scroll-mt-28 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Form Setoran Tabungan</h2>
@@ -379,19 +383,23 @@ export default function ShaderBackgroundDemo() {
             {successMessage && (
               <div className="mb-5 p-3.5 bg-green-500/20 border border-green-500 text-green-300 text-xs sm:text-sm rounded-2xl text-center font-medium">{successMessage}</div>
             )}
+            
             <form onSubmit={handlePaymentSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-white/80 mb-1.5">Nama Siswa</label>
                 <select value={selectedStudentId} onChange={(e) => setSelectedStudentId(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400">
+                  <option value="" disabled>-- Pilih Namamu --</option>
                   {students.map((s) => (
                     <option key={s.id} value={s.id} className="bg-zinc-900 text-white">{s.name}</option>
                   ))}
                 </select>
               </div>
+              
               <div>
                 <label className="block text-xs font-semibold text-white/80 mb-1.5">Nominal Setoran (Rp)</label>
                 <input type="number" placeholder="Contoh: 50000" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" />
               </div>
+              
               <div>
                 <label className="block text-xs font-semibold text-white/80 mb-1.5">Metode Pembayaran</label>
                 <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400">
@@ -400,6 +408,22 @@ export default function ShaderBackgroundDemo() {
                   <option value="Cash" className="bg-zinc-900">Cash / Tunai</option>
                 </select>
               </div>
+
+              {/* TAMPILAN GAMBAR QRIS (HANYA MUNCUL JIKA METODE = QRIS) */}
+              {paymentMethod === "QRIS" && (
+                <div className="flex flex-col items-center bg-white/5 p-4 rounded-2xl border border-white/10 transition-all">
+                  <p className="text-xs text-white/80 mb-3 font-medium">Scan QRIS di bawah ini:</p>
+                  <img 
+                    src="/qris.jpg" 
+                    alt="QRIS GH27" 
+                    className="w-48 sm:w-52 rounded-xl shadow-lg border border-white/20 cursor-pointer hover:scale-105 transition-transform" 
+                    onClick={() => setPreviewImage("/qris.jpg")}
+                    title="Klik untuk perbesar QRIS"
+                  />
+                  <p className="text-[11px] text-cyan-300 mt-3 font-bold tracking-wider">GH27 100% PTN, DIGITAL</p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-white/80 mb-1.5">Upload Foto Bukti Transfer</label>
                 <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full file:py-2 file:px-4 file:rounded-xl file:font-semibold file:bg-cyan-500 hover:file:bg-cyan-400 cursor-pointer text-xs text-white/70 file:mr-4 file:border-0 file:text-black" />
@@ -417,6 +441,7 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
+        {/* MONEY SAVES SECTION */}
         <section id="money-saves" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-green-400">Rekapitulasi Tabungan 81 Siswa</h2>
@@ -506,6 +531,7 @@ export default function ShaderBackgroundDemo() {
         © 2026 fahryrizky.my.id
       </footer>
 
+      {/* POPUP MODAL PREVIEW */}
       {previewImage && (
         <div onClick={() => setPreviewImage(null)} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer">
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
