@@ -301,7 +301,7 @@ export default function ShaderBackgroundDemo() {
         {/* HOME SECTION */}
         <section id="home" className="scroll-mt-32 flex flex-col items-center text-center">
           <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-300 tracking-wider uppercase">
-            Angkatan 27 • 81 Members
+            ANGKATAN 27 • ASRAMA MAN 4 JAKARTA
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-3">
             Memories & Journey of <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GH27</span>
