@@ -5,46 +5,75 @@ import { db } from "@/app/firebase"
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore"
 
 const photos = [
-  "/foto1.jpeg",
-  "/foto2.jpeg",
-  "/foto3.jpeg",
-  "/foto4.jpeg",
-  "/foto5.jpeg",
-  "/foto6.jpeg",
-  "/foto7.jpeg",
-  "/foto8.jpeg",
-  "/foto9.jpeg",
-  "/foto10.jpeg",
-  "/foto11.jpeg",
-  "/foto12.jpeg",
-  "/foto13.jpeg"
+  "/foto1.jpeg", "/foto2.jpeg", "/foto3.jpeg", "/foto4.jpeg", "/foto5.jpeg",
+  "/foto6.jpeg", "/foto7.jpeg", "/foto8.jpeg", "/foto9.jpeg", "/foto10.jpeg",
+  "/foto11.jpeg", "/foto12.jpeg", "/foto13.jpeg"
 ]
 
+// Daftar 81 Nama Terbaru
 const GH27_STUDENTS = [
-  "ABRISAM YAHYA AGHNIY", "AQILAHAIRA FATHINA ZUHDI", "AISHA NASHIFA", "AISHAKIRANA MAULIDA SUBARKAH",
-  "Aisya Nabila", "ALTHAF AQIELA WICAKSONO", "ALVARO PRANADHAFA LANDRYE", "ANNIDA MAHRUS",
-  "ARIF NOFRIZALDI SAPUTRA", "ATHA SHAKILA ARANI", "ATSIRAH ZAKIAH ARRINI MOHENDEZ",
-  "AURELIA ERVIANI", "CARISSA HANUN DIANDRA BAHTIAR", "CHOKY FII RAMADHANI", "DANISH AUFA RAIHAN",
-  "DHABIT GHANIA WIDAYAT", "DINDA MAULIDA AZKIYA", "DZAKIYYAH IFFATTAQIYYAH FITHRI",
-  "ERLANGGA NURHISYAM", "FADHIL AGHNIYA MUZAKKI", "FAHRY RIZKY ALFATAN", "FAKHRI ISHAMUDDIN AUFA YASIR",
-  "FATHIA MEGUMI YUDHA", "FAWAZAH ALFIYAH BALQIS", "GHEZIAN ABIEZZA FAUZI", "HANA RAHMAH SHALIHAH",
+  "ABRISAM YAHYA", "AGHNIY AQILAH", "AISHA NASHIFA", "AISHAKIRANA MAULIDA SUBARKAH",
+  "AISYA NABILA", "ALTHAF AQIELA WICAKSONO", "ALVARO PRANADHAFA LANDRYE", "ANNIDA MAHRUS",
+  "ARIF NOFRIZALDI SAPUTRA", "ATHA SHAKILA ARANI", "ATSIRAH ZAKIAH ARRINI MOHANDEZ",
+  "AURELIA ERVIANI", "CARISSA HANUN DIANDRA BAHTIAR", "CHOKY FII RAMADHANI",
+  "DANISH AUFA RAIHAN", "DHABIT GHANIA WIDAYAT", "DINDA MAULIDA AZKIYA",
+  "DZAKIYYAH 'IFFATTAQIYYAH FITHRI", "ERLANGGA NURHISYAM", "FADHIL AGHNIYAA MUZAKKI",
+  "FAHRY RIZKY ALFATAN", "FAKHRI ISHAMUDDIN AUFA YASIR", "FATHIA MEGUMI YUDHA",
+  "FAWAZAH ALFIYAH BALQIS", "GHEZIAN ABIEZZA FAUZI", "HANA RAHMAH SHALIHAH",
   "HANIA NUR SHABRINA", "HASNA MUTHIAH", "HAZIMAH JASMINE MAHENDRA", "IRSYAD ALI NURSY",
-  "IRSYAD DHIYAULHAQQI PRAYETNO", "IZZAH SILMIAH AHMAD", "KAYLA ANISA AZKIA", "KAYLA HANIN EFRONA ZALUKHU",
-  "KHANZANEETA ERIQA MAHYA WINARSO", "KHALIS MAHESWARA SANTIKA", "LINTANG CAHYA NINGTYAS",
-  "LUTHFIYAH ANWAR", "MAISHA AQILA YUSIRWAN", "MAZAYA AULIA", "MAZAYA DHEAVATY PUTRI AZIS",
-  "MIRZA AL FARABI DEWANDARU", "MOCHAMAD FACHRY RAMADHAN", "MUHAMMAD ALFATH SUBHAN",
-  "MUHAMMAD AZZAM ARAFAH", "MUHAMMAD DANISH SHIRAZ MULIA", "MUHAMMAD IHKAM HANIF",
-  "MUHAMMAD IBRAHIM MUSA", "MUHAMMAD ILHAM RAMADHAN", "MUHAMMAD ORYZA SATIVA ZWEIZI",
-  "MUHAMMAD RAFIIF STYAWAN", "MUHAMMAD TAUFIKURRAHMAN", "MUHAMMAD ZAYYAN MUGHNIY",
-  "NADHIF AHMAD WIBOWO", "NAZLA QUEENCY LALUNA ABIDIN", "NIA HARMAWAN", "NIDA AULIA MUMTAZ",
-  "NI MAH AISHA SIREGAR", "NURRONAA ROSYIDATU HUSNA", "APRADISWA ATIFI", "SHIDQY ATHAURRAHMAN",
-  "QAWIYAH HAKIMAH QO'IMUDDIN", "QURROTA A'YUN TANJUNG", "RADHIYYAH FAYZA ZEIN", "RADIEZA AMMAR DANISH",
-  "RAFI ISHAMUDDIN AUFA YASIR", "RAFIF BELADDIN INDRAWAN", "RAISA NUR SHABRINA MASHFA",
-  "SENDRIYA ARKANANTA HIDAYAT", "REZA PUTRA YULIANTO", "RIDHA AYU ZAHIRA", "SAYYID HAFIDZ MUBAROK",
-  "SITI KAYISA ADHA", "SULAIMAN UMAR WALIYURRAHMAN", "MUWAFFAQ ANNAFI MUHTADI", "SUMAYYAH AZ ZAHRA HIJJIYAH",
+  "IRSYAD DHIYAULHAQQI PRAYETNO", "IZZAH SILMIAH AHMAD", "KAYLA ANISA AZKIA",
+  "KAYLA HANIN EFRONA ZALUKHU", "KHALIS MAHESWARA SANTIKA", "KHANZANEETA ERIQA MAHYA WINARSO",
+  "LINTANG CAHYA NINGTYAS", "LUTHFIYAH ANWAR", "MAISHA AQILA YUSIRWAN", "MAZAYA AULIA",
+  "MAZAYA DHEAVATY PUTRI AZIS", "MIRZA AL FARABI DEWANDARU", "MOCHAMAD FACHRY RAMADHAN",
+  "MUHAMMAD ALFATH SUBHAN", "MUHAMMAD AZZAM ARAFAH", "MUHAMMAD DANISH SHIRAZ MULIA",
+  "MUHAMMAD IBRAHIM MUSA", "MUHAMMAD IHKAM HANIF", "MUHAMMAD ILHAM RAMADHAN",
+  "MUHAMMAD ORYZA SATIVA ZWEIZIA", "MUHAMMAD RAFIIF STYAWAN", "MUHAMMAD TAUFIKURRAHMAN",
+  "MUHAMMAD ZAYYAN MUGHNIY", "NADHIF AHMAD WIBOWO", "NAZLA QUEENCY LALUNA ABIDIN",
+  "NIA HARMAWAN", "NI'MAH AISHA SIREGAR", "NIDA AULIA MUMTAZ", "NURRONAA ROSYIDATU HUSNAA",
+  "PRADISWA ATIFISHIDQY ATHAURRAHMAN", "QAWIYAH HAKIMAH QO'IMUDDIN", "QURROTA A'YUN TANJUNG",
+  "RADIEZA AMMAR DANISH", "RADHIYYAH FAYZA ZEIN", "RAFI ISHAMUDDIN AUFA YASIR",
+  "RAFIF BELADDIN INDRAWAN", "RAISA NUR SHABRINA MASHFA", "RASENDRIYA ARKANANTA HIDAYAT",
+  "REZA PUTRA YULIANTO", "RIDHA AYU ZAHIRA", "SAYYID HAFIDZ MUBAROK", "SITI KAYISA ADHA",
+  "SULAIMAN UMAR WALIYURRAHMAN MUWAFFAQ ANNAFI MUHTADI", "SUMAYYAH AZ ZAHRA HIJJIYAH",
   "SYAFA NADA KAMILA", "SYAFIRA RAHMAH PUTRI", "SYAZA LIYANA FADHLY", "TAUFIK RAMADHAN",
   "WIRA DWI RIZKY", "ZAHRANI NAZIHA FIRDAUS", "ZEEDA BARAKA AHMAD"
 ]
+
+const rundownData = [
+  {
+    day: "Day 1",
+    activities: [
+      { time: "06.00-14.00", desc: "Perjalanan Jakarta → villa", transport: "Big Bus" },
+      { time: "14.00-15.30", desc: "Istirahat / check-in", transport: "Villa" },
+      { time: "15.30-16.00", desc: "Perjalanan ke Pantai Madasari", transport: "Big Bus" },
+      { time: "16.00-18.30", desc: "Pantai Madasari", transport: "-" },
+      { time: "18.30-19.15", desc: "Kembali ke villa", transport: "Big Bus" },
+      { time: "19.15-06.00", desc: "Makan malam & istirahat", transport: "Villa" }
+    ]
+  },
+  {
+    day: "Day 2",
+    activities: [
+      { time: "07.30-08.00", desc: "Perjalanan ke Green Canyon", transport: "Big Bus" },
+      { time: "08.00-12.00", desc: "Green Canyon", transport: "Perahu" },
+      { time: "12.00-13.00", desc: "Makan siang / perjalanan", transport: "Big Bus" },
+      { time: "13.00-18.00", desc: "Free time / Batu Karas", transport: "-" },
+      { time: "18.00-20.00", desc: "ISHOMA / makan malam", transport: "Villa" },
+      { time: "20.00-23.30", desc: "Farewell + BBQ + api unggun", transport: "Villa" },
+      { time: "23.30-06.00", desc: "Istirahat", transport: "Villa" }
+    ]
+  },
+  {
+    day: "Day 3",
+    activities: [
+      { time: "06.30-07.20", desc: "Perjalanan ke Citumang", transport: "Big Bus" },
+      { time: "07.20-10.20", desc: "Citumang / body rafting", transport: "-" },
+      { time: "10.20-11.00", desc: "Kembali ke villa", transport: "Big Bus" },
+      { time: "11.00-13.00", desc: "Persiapan pulang / check-out", transport: "Villa" },
+      { time: "13.00-20.00", desc: "Perjalanan kembali ke MAN 4", transport: "Big Bus" }
+    ]
+  }
+];
 
 export default function ShaderBackgroundDemo() {
   const [currentIndex, setCurrentIndex] = useState(0)
@@ -196,23 +225,21 @@ export default function ShaderBackgroundDemo() {
   )
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden text-white selection:bg-cyan-500 selection:text-black">
+    <div className="relative min-h-screen w-full text-white selection:bg-cyan-500 selection:text-black">
       
-      {/* FIXED BACKGROUND (Tetap diam saat halaman di-scroll) */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
+      {/* FIXED BACKGROUND ANTIGLITCH */}
+      <div className="fixed top-0 left-0 w-full h-[100dvh] z-0 pointer-events-none bg-black overflow-hidden transform-gpu">
         <ShaderBackground className="h-full w-full" />
       </div>
 
-      {/* FIXED NAVBAR (Responsif Desktop & HP) */}
+      {/* FIXED NAVBAR */}
       <header className="fixed top-0 left-0 w-full z-50 px-4 py-4 md:px-12">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-5 py-3 bg-black/40 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] rounded-full">
-          {/* Logo */}
           <div onClick={() => scrollToSection("home")} className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight cursor-pointer select-none">
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500">GH27</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-cyan-400 to-blue-500 ml-1.5">Vacation</span>
           </div>
 
-          {/* Menu Desktop */}
           <div className="hidden md:flex items-center gap-8 text-white/90 font-semibold text-sm">
             <button onClick={() => scrollToSection("home")} className="hover:text-cyan-400 transition-colors cursor-pointer">Home</button>
             <button onClick={() => scrollToSection("about")} className="hover:text-cyan-400 transition-colors cursor-pointer">About</button>
@@ -220,31 +247,20 @@ export default function ShaderBackgroundDemo() {
             <button onClick={() => scrollToSection("money-saves")} className="hover:text-cyan-400 transition-colors cursor-pointer">Money Saves</button>
           </div>
 
-          {/* Tombol Menu Khusus HP */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold tracking-wide text-white transition-all"
-            aria-label="Toggle Menu"
           >
             {mobileMenuOpen ? "✕ Tutup" : "☰ Menu"}
           </button>
         </nav>
 
-        {/* Dropdown Menu HP (Liquid Glass) */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-2 max-w-6xl mx-auto bg-black/80 backdrop-blur-2xl border border-white/20 rounded-3xl p-4 shadow-2xl flex flex-col gap-2">
-            <button onClick={() => scrollToSection("home")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white flex items-center justify-between">
-              <span>Home</span><span className="text-white/40">→</span>
-            </button>
-            <button onClick={() => scrollToSection("about")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white flex items-center justify-between">
-              <span>About & Rundown</span><span className="text-white/40">→</span>
-            </button>
-            <button onClick={() => scrollToSection("payment")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white flex items-center justify-between">
-              <span>Payment (Setor)</span><span className="text-white/40">→</span>
-            </button>
-            <button onClick={() => scrollToSection("money-saves")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white flex items-center justify-between">
-              <span>Money Saves (Rekap)</span><span className="text-white/40">→</span>
-            </button>
+            <button onClick={() => scrollToSection("home")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">Home</button>
+            <button onClick={() => scrollToSection("about")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">About & Rundown</button>
+            <button onClick={() => scrollToSection("payment")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">Payment (Setor)</button>
+            <button onClick={() => scrollToSection("money-saves")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">Money Saves (Rekap)</button>
           </div>
         )}
       </header>
@@ -252,7 +268,7 @@ export default function ShaderBackgroundDemo() {
       {/* MAIN SCROLLABLE CONTENT */}
       <main className="relative z-10 w-full max-w-5xl mx-auto px-4 sm:px-6 pt-28 md:pt-36 pb-24 space-y-24 md:space-y-32">
 
-        {/* === SECTION 1: HOME & GALLERY SLIDER === */}
+        {/* SECTION 1: HOME & GALLERY SLIDER */}
         <section id="home" className="scroll-mt-32 flex flex-col items-center text-center">
           <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-300 tracking-wider uppercase">
             Angkatan 27 • 81 Members
@@ -264,44 +280,23 @@ export default function ShaderBackgroundDemo() {
             Dokumentasi kebersamaan, informasi perjalanan, dan transparansi tabungan angkatan sebelum melangkah ke jenjang berikutnya.
           </p>
 
-          {/* Liquid Glass Photo Slider */}
           <div className="relative w-full max-w-[750px] aspect-video bg-white/10 backdrop-blur-xl border border-white/20 p-2.5 sm:p-3.5 rounded-3xl shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] flex items-center justify-center group">
             <button onClick={prevPhoto} className="absolute left-3 sm:left-5 z-10 bg-black/50 hover:bg-black/70 text-white backdrop-blur-md w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/15 transition-all shadow-lg flex items-center justify-center font-bold cursor-pointer">❮</button>
-            
             <div className="relative w-full h-full bg-black/40 rounded-2xl overflow-hidden flex items-center justify-center cursor-pointer">
-              <img 
-                src={photos[currentIndex]} 
-                alt={`Vacation ${currentIndex + 1}`} 
-                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                onClick={() => setPreviewImage(photos[currentIndex])}
-              />
-              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white/90 text-[11px] sm:text-xs px-3 py-1.5 rounded-full border border-white/15 transition-opacity pointer-events-none shadow-md">
-                🔍 Tap untuk perbesar ({currentIndex + 1}/{photos.length})
-              </div>
+              <img src={photos[currentIndex]} alt={`Vacation ${currentIndex + 1}`} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" onClick={() => setPreviewImage(photos[currentIndex])} />
+              <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white/90 text-[11px] sm:text-xs px-3 py-1.5 rounded-full border border-white/15 opacity-0 group-hover:opacity-100 transition-opacity shadow-md pointer-events-none">🔍 Zoom</div>
             </div>
-
             <button onClick={nextPhoto} className="absolute right-3 sm:right-5 z-10 bg-black/50 hover:bg-black/70 text-white backdrop-blur-md w-9 h-9 sm:w-11 sm:h-11 rounded-full border border-white/15 transition-all shadow-lg flex items-center justify-center font-bold cursor-pointer">❯</button>
           </div>
           
-          {/* Dots Indicator */}
           <div className="flex flex-wrap justify-center gap-2 mt-5">
             {photos.map((_, idx) => (
               <button key={idx} onClick={() => setCurrentIndex(idx)} className={`h-2 rounded-full transition-all cursor-pointer ${currentIndex === idx ? "w-6 bg-cyan-400" : "w-2 bg-white/40 hover:bg-white/70"}`} aria-label={`Slide ${idx + 1}`} />
             ))}
           </div>
-
-          {/* Quick Jump Buttons */}
-          <div className="flex flex-wrap justify-center gap-3 mt-8">
-            <button onClick={() => scrollToSection("payment")} className="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold text-sm shadow-lg hover:opacity-90 transition-all cursor-pointer">
-              Setor Tabungan
-            </button>
-            <button onClick={() => scrollToSection("about")} className="px-6 py-2.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-semibold text-sm transition-all cursor-pointer">
-              Lihat Rundown
-            </button>
-          </div>
         </section>
 
-        {/* === SECTION 2: ABOUT, RUNDOWN & DESTINASI === */}
+        {/* SECTION 2: ABOUT, RUNDOWN & DESTINASI */}
         <section id="about" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">About GH27 Vacation</h2>
@@ -332,13 +327,27 @@ export default function ShaderBackgroundDemo() {
             )}
 
             {aboutSubTab === "rundown" && (
-              <div className="space-y-4 text-sm sm:text-base">
-                <h3 className="text-xl font-bold text-cyan-300">Rundown Singkat</h3>
-                <div className="space-y-3">
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><span className="text-yellow-300 font-bold">Day 1:</span> Perjalanan ke Villa & Pantai Madasari</div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><span className="text-yellow-300 font-bold">Day 2:</span> Green Canyon & Farewell BBQ</div>
-                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><span className="text-yellow-300 font-bold">Day 3:</span> Citumang Body Rafting & Pulang</div>
-                </div>
+              <div className="space-y-6 text-sm sm:text-base">
+                {rundownData.map((day, idx) => (
+                  <div key={idx} className="bg-white/5 p-4 sm:p-6 rounded-3xl border border-white/10">
+                    <h3 className="text-lg font-bold text-yellow-300 mb-4 border-b border-white/10 pb-2">{day.day}</h3>
+                    <div className="space-y-3">
+                      {day.activities.map((act, i) => (
+                        <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 w-full">
+                            <span className="text-cyan-300 font-mono text-xs sm:text-sm font-semibold shrink-0 sm:w-28">{act.time}</span>
+                            <span className="text-white/90 font-medium">{act.desc}</span>
+                          </div>
+                          {act.transport !== "-" && (
+                            <span className="text-[10px] sm:text-xs uppercase tracking-wider bg-black/40 px-2.5 py-1 rounded-md border border-white/10 text-white/60 whitespace-nowrap self-start sm:self-auto">
+                              {act.transport}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
@@ -355,7 +364,7 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
-        {/* === SECTION 3: PAYMENT (FORM SETORAN) === */}
+        {/* SECTION 3: PAYMENT */}
         <section id="payment" className="scroll-mt-28 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Form Setoran Tabungan</h2>
@@ -364,9 +373,7 @@ export default function ShaderBackgroundDemo() {
 
           <div className="w-full max-w-lg bg-black/45 backdrop-blur-xl border border-white/20 p-6 sm:p-8 rounded-3xl shadow-2xl text-white">
             {successMessage && (
-              <div className="mb-5 p-3.5 bg-green-500/20 border border-green-500 text-green-300 text-xs sm:text-sm rounded-2xl text-center font-medium">
-                {successMessage}
-              </div>
+              <div className="mb-5 p-3.5 bg-green-500/20 border border-green-500 text-green-300 text-xs sm:text-sm rounded-2xl text-center font-medium">{successMessage}</div>
             )}
             <form onSubmit={handlePaymentSubmit} className="space-y-4">
               <div>
@@ -406,7 +413,7 @@ export default function ShaderBackgroundDemo() {
           </div>
         </section>
 
-        {/* === SECTION 4: MONEY SAVES (REKAPITULASI TABUNGAN) === */}
+        {/* SECTION 4: MONEY SAVES */}
         <section id="money-saves" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-green-400">Rekapitulasi Tabungan 81 Siswa</h2>
@@ -418,17 +425,10 @@ export default function ShaderBackgroundDemo() {
               <p className="text-center text-white/60 py-8">Memuat data 81 siswa...</p>
             ) : (
               <div className="space-y-10">
-                {/* Tabel Saldo Per Siswa + Search */}
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                     <h3 className="text-base font-bold text-cyan-300">Total Saldo Per Siswa</h3>
-                    <input
-                      type="text"
-                      placeholder="🔍 Cari nama siswa..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full sm:w-64 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-xs sm:text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-cyan-400"
-                    />
+                    <input type="text" placeholder="🔍 Cari nama siswa..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full sm:w-64 bg-white/10 border border-white/20 rounded-full px-4 py-2 text-xs sm:text-sm text-white placeholder:text-white/50 focus:outline-none focus:border-cyan-400" />
                   </div>
                   <div className="overflow-x-auto max-h-72 overflow-y-auto rounded-2xl border border-white/10">
                     <table className="w-full text-left border-collapse">
@@ -456,7 +456,6 @@ export default function ShaderBackgroundDemo() {
                   </div>
                 </div>
 
-                {/* Tabel Riwayat Transaksi */}
                 <div>
                   <h3 className="text-base font-bold text-cyan-300 mb-4">Riwayat Seluruh Setoran Masuk</h3>
                   <div className="overflow-x-auto max-h-72 overflow-y-auto rounded-2xl border border-white/10">
@@ -482,13 +481,7 @@ export default function ShaderBackgroundDemo() {
                               <td className="py-2.5 px-4 text-white/80">{tx.method}</td>
                               <td className="py-2.5 px-4">
                                 {tx.proof && tx.proof !== "Tidak ada foto" ? (
-                                  <img
-                                    src={tx.proof}
-                                    alt="Bukti"
-                                    onClick={() => setPreviewImage(tx.proof)}
-                                    className="w-10 h-10 object-cover rounded-lg border border-white/25 hover:scale-110 transition-all cursor-pointer shadow-md"
-                                    title="Klik untuk memperbesar foto"
-                                  />
+                                  <img src={tx.proof} alt="Bukti" onClick={() => setPreviewImage(tx.proof)} className="w-10 h-10 object-cover rounded-lg border border-white/25 hover:scale-110 transition-all cursor-pointer shadow-md" title="Klik untuk memperbesar foto" />
                                 ) : (
                                   <span className="text-white/40">-</span>
                                 )}
@@ -504,29 +497,18 @@ export default function ShaderBackgroundDemo() {
             )}
           </div>
         </section>
-
       </main>
 
-      {/* FOOTER */}
       <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-md py-6 text-center text-xs text-white/50">
         © 2026 GH27 Vacation • Angkatan 27
       </footer>
 
-      {/* POPUP MODAL PREVIEW GAMBAR BESAR */}
+      {/* POPUP MODAL PREVIEW */}
       {previewImage && (
         <div onClick={() => setPreviewImage(null)} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer">
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
-            <button
-              onClick={() => setPreviewImage(null)}
-              className="absolute -top-12 right-0 text-white bg-white/20 hover:bg-white/40 border border-white/20 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm transition-all"
-            >
-              ✕
-            </button>
-            <img
-              src={previewImage}
-              alt="Preview Zoom"
-              className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/20 shadow-2xl bg-black/50"
-            />
+            <button onClick={() => setPreviewImage(null)} className="absolute -top-12 right-0 text-white bg-white/20 hover:bg-white/40 border border-white/20 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm transition-all">✕</button>
+            <img src={previewImage} alt="Preview Zoom" className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/20 shadow-2xl bg-black/50" />
             <p className="text-xs text-white/60 mt-3">Klik di mana saja untuk menutup</p>
           </div>
         </div>
