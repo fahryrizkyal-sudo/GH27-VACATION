@@ -246,8 +246,11 @@ export default function ShaderBackgroundDemo() {
   const [amount, setAmount] = useState("")
   const [paymentMethod, setPaymentMethod] = useState("Transfer Bank")
   const [proofImage, setProofImage] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
+  const [errorMessage, setErrorMessage] = useState("")
   const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -292,6 +295,7 @@ export default function ShaderBackgroundDemo() {
         txSnap.forEach((docSnap) => {
           txList.push({ id: docSnap.id, ...docSnap.data() })
         })
+        txList.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
         setTransactions(txList)
         setLoading(false)
       } catch (error) {
@@ -315,44 +319,61 @@ export default function ShaderBackgroundDemo() {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const img = new window.Image()
-        img.src = event.target?.result as string
-        img.onload = () => {
-          const canvas = document.createElement("canvas")
-          const ctx = canvas.getContext("2d")
-          const MAX_WIDTH = 800
-          const MAX_HEIGHT = 800
-          let width = img.width
-          let height = img.height
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height = Math.round((height * MAX_WIDTH) / width)
-              width = MAX_WIDTH
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width = Math.round((width * MAX_HEIGHT) / height)
-              height = MAX_HEIGHT
-            }
-          }
-          canvas.width = width
-          canvas.height = height
-          ctx?.drawImage(img, 0, 0, width, height)
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75)
-          setProofImage(compressedDataUrl)
-        }
-      }
-      reader.readAsDataURL(file)
+    if (!file) {
+      setProofImage("")
+      return
     }
+    setErrorMessage("")
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new window.Image()
+      img.src = event.target?.result as string
+      img.onload = () => {
+        const canvas = document.createElement("canvas")
+        const ctx = canvas.getContext("2d")
+        const MAX_WIDTH = 800
+        const MAX_HEIGHT = 800
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width)
+            width = MAX_WIDTH
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height)
+            height = MAX_HEIGHT
+          }
+        }
+        canvas.width = width
+        canvas.height = height
+        ctx?.drawImage(img, 0, 0, width, height)
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.75)
+        setProofImage(compressedDataUrl)
+      }
+    }
+    reader.readAsDataURL(file)
   }
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!amount || Number(amount) <= 0) return
+    if (isSubmitting) return
+
+    if (!amount || Number(amount) <= 0) {
+      setErrorMessage("Masukkan nominal setoran yang valid terlebih dahulu.")
+      return
+    }
+
+    if (!proofImage) {
+      setErrorMessage("Wajib upload foto bukti transfer sebelum mengirim setoran!")
+      return
+    }
+
+    setErrorMessage("")
+    setIsSubmitting(true)
+
     try {
       const studentDoc = students.find((s) => s.id === selectedStudentId)
       if (!studentDoc) return
@@ -377,7 +398,8 @@ export default function ShaderBackgroundDemo() {
         amount: Number(amount),
         date: currentDate,
         method: paymentMethod,
-        proof: proofImage || "Tidak ada foto"
+        proof: proofImage,
+        createdAt: Date.now()
       }
 
       const docRef = await addDoc(collection(db, "transactions"), newTx)
@@ -404,16 +426,21 @@ export default function ShaderBackgroundDemo() {
       setSuccessMessage(`Berhasil mengirim setoran Rp${Number(amount).toLocaleString("id-ID")} untuk ${studentDoc.name}!`)
       setAmount("")
       setProofImage("")
+      if (fileInputRef.current) fileInputRef.current.value = ""
       setTimeout(() => setSuccessMessage(""), 4000)
     } catch (error) {
       console.error("Gagal menyimpan pembayaran:", error)
-      alert("Terjadi kesalahan saat menyimpan ke database.")
+      setErrorMessage("Terjadi kesalahan saat menyimpan ke database. Coba lagi.")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const filteredStudents = students.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const canSubmit = !isSubmitting && Boolean(proofImage) && Boolean(amount) && Number(amount) > 0
 
   return (
     <div className="relative min-h-screen w-full text-white selection:bg-cyan-500 selection:text-black">
@@ -611,6 +638,10 @@ export default function ShaderBackgroundDemo() {
             {successMessage && (
               <div className="mb-5 p-3.5 bg-white/15 border border-white/30 text-white text-xs sm:text-sm rounded-2xl text-center font-medium">{successMessage}</div>
             )}
+
+            {errorMessage && (
+              <div className="mb-5 p-3.5 bg-red-500/20 border border-red-400/50 text-red-200 text-xs sm:text-sm rounded-2xl text-center font-medium">{errorMessage}</div>
+            )}
             
             <form onSubmit={handlePaymentSubmit} className="space-y-4">
               <div>
@@ -624,8 +655,8 @@ export default function ShaderBackgroundDemo() {
               </div>
               
               <div>
-                <label className="block text-xs font-semibold text-white/80 mb-1.5">Nominal Setoran (Rp)</label>
-                <input type="number" placeholder="Contoh: 50000" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" />
+                <label className="block text-xs font-semibold text-white/80 mb-1.5">Nominal Setoran (Rp) <span className="text-red-400">*</span></label>
+                <input type="number" min="1" required placeholder="Contoh: 50000" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400" />
               </div>
               
               <div>
@@ -652,17 +683,24 @@ export default function ShaderBackgroundDemo() {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-white/80 mb-1.5">Upload Foto Bukti Transfer</label>
-                <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full file:py-2 file:px-4 file:rounded-xl file:font-semibold file:bg-cyan-500 hover:file:bg-cyan-400 cursor-pointer text-xs text-white/70 file:mr-4 file:border-0 file:text-black" />
-                {proofImage && (
+                <label className="block text-xs font-semibold text-white/80 mb-1.5">Upload Foto Bukti Transfer <span className="text-red-400">* (Wajib)</span></label>
+                <input ref={fileInputRef} type="file" accept="image/*" required onChange={handleImageUpload} className="w-full file:py-2 file:px-4 file:rounded-xl file:font-semibold file:bg-cyan-500 hover:file:bg-cyan-400 cursor-pointer text-xs text-white/70 file:mr-4 file:border-0 file:text-black" />
+                {proofImage ? (
                   <div className="mt-3 flex items-center gap-3 bg-white/5 p-2.5 rounded-xl border border-white/10">
                     <img src={proofImage} alt="Preview" className="w-12 h-12 object-cover rounded-lg border border-white/20" />
                     <span className="text-xs text-white font-medium">✓ Bukti siap dikirim</span>
                   </div>
+                ) : (
+                  <p className="text-[11px] text-white/50 mt-1.5">Upload bukti pembayaran terlebih dahulu agar tombol kirim aktif.</p>
                 )}
               </div>
-              <button type="submit" className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold rounded-xl shadow-lg hover:opacity-90 transition-all text-sm mt-2 cursor-pointer">
-                Kirim Setoran & Simpan Bukti
+
+              <button
+                type="submit"
+                disabled={!canSubmit}
+                className="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold rounded-xl shadow-lg hover:opacity-90 transition-all text-sm mt-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Mengirim Setoran..." : "Kirim Setoran & Simpan Bukti"}
               </button>
             </form>
           </div>
