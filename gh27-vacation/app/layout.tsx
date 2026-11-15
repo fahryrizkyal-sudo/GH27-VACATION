@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "GH27 Vacation",
   description: "Memories & Journey of Angkatan 27 Asrama MAN 4 Jakarta",
   icons: {
-    icon: "/icon.jpeg", // sesuaikan dengan nama file di folder public/
+    icon: "/icongh.jpeg", // sesuaikan dengan nama file di folder public/
   },
 };
 
