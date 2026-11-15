@@ -1,9 +1,130 @@
 "use client"
-import React, { useState, useEffect } from "react"
-import { ShaderBackground } from "./ui/bw-liquid"
+import React, { useState, useEffect, useRef } from "react"
 import { db } from "@/app/firebase"
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore"
 
+// === SHADER BACKGROUND BARU (ATC) ===
+const vertSrc = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 a_pos;
+void main(){ gl_Position = vec4(a_pos,0.0,1.0); }`
+
+const fragSrc = `#version 300 es
+precision highp float;
+out vec4 fragColor;
+
+uniform vec2  u_res;
+uniform float u_time;
+
+float tanh1(float x){ float e = exp(2.0*x); return (e-1.0)/(e+1.0); }
+vec4 tanh4(vec4 v){ return vec4(tanh1(v.x), tanh1(v.y), tanh1(v.z), tanh1(v.w)); }
+
+void main(){
+  vec3 FC = vec3(gl_FragCoord.xy, 0.0);
+  vec3 r  = vec3(u_res, max(u_res.x, u_res.y));
+  float t = u_time;
+
+  vec4 o = vec4(0.0);
+
+  vec3 p = vec3(0.0);
+  vec3 v = vec3(1.0, 2.0, 6.0);
+  float i = 0.0, z = 1.0, d = 1.0, f = 1.0;
+
+  for ( ; i++ < 5e1;
+        o.rgb += (cos((p.x + z + v) * 0.1) + 1.0) / d / f / z )
+  {
+    p = z * normalize(FC * 2.0 - r.xyy);
+
+    vec4 m = cos((p + sin(p)).y * 0.4 + vec4(0.0, 33.0, 11.0, 0.0));
+    p.xz = mat2(m) * p.xz;
+
+    p.x += t / 0.2;
+
+    z += ( d = length(cos(p / v) * v + v.zxx / 7.0) /
+           ( f = 2.0 + d / exp(p.y * 0.2) ) );
+  }
+
+  o = tanh4(0.2 * o);
+  o.a = 1.0;
+  fragColor = o;
+}`
+
+function ShaderDemo_ATC() {
+  const ref = useRef<HTMLCanvasElement>(null)
+  const preRef = useRef<HTMLPreElement>(null)
+
+  useEffect(() => {
+    const canvas = ref.current!, pre = preRef.current!
+    const gl = canvas.getContext("webgl2", { premultipliedAlpha: false })
+    if (!gl) { pre.textContent = "WebGL2 not available"; return }
+
+    const compile = (type: number, src: string) => {
+      const sh = gl.createShader(type)!; gl.shaderSource(sh, src); gl.compileShader(sh)
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS))
+        throw new Error(gl.getShaderInfoLog(sh) || "compile error")
+      return sh
+    }
+    const link = (vs: string, fs: string) => {
+      const p = gl.createProgram()!
+      gl.attachShader(p, compile(gl.VERTEX_SHADER, vs))
+      gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fs))
+      gl.linkProgram(p)
+      if (!gl.getProgramParameter(p, gl.LINK_STATUS))
+        throw new Error(gl.getProgramInfoLog(p) || "link error")
+      return p
+    }
+
+    let prog: WebGLProgram
+    try { prog = link(vertSrc, fragSrc) }
+    catch (e: any) { (pre.textContent as any) = "Shader error:\n" + e.message; return }
+
+    gl.useProgram(prog)
+
+    const buf = gl.createBuffer()!
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf)
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+      -1, -1,  1, -1, -1,  1,  -1,  1,  1, -1,  1,  1,
+    ]), gl.STATIC_DRAW)
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
+
+    const uRes  = gl.getUniformLocation(prog, "u_res")
+    const uTime = gl.getUniformLocation(prog, "u_time")
+
+    const resize = () => {
+      const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1))
+      const w = Math.floor((canvas.clientWidth || window.innerWidth) * dpr)
+      const h = Math.floor((canvas.clientHeight || window.innerHeight) * dpr)
+      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h }
+      gl.viewport(0, 0, w, h)
+      gl.uniform2f(uRes, w, h)
+    }
+    const onResize = () => { resize() }
+    window.addEventListener("resize", onResize, { passive: true })
+    resize()
+
+    let raf = 0
+    const t0 = performance.now()
+    const draw = () => {
+      const t = (performance.now() - t0) / 1000
+      gl.uniform1f(uTime, t)
+      gl.clear(gl.COLOR_BUFFER_BIT)
+      gl.drawArrays(gl.TRIANGLES, 0, 6)
+      raf = requestAnimationFrame(draw)
+    }
+    draw()
+
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", onResize) }
+  }, [])
+
+  return (
+    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+      <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block", background: "#000" }} />
+      <pre ref={preRef} style={{ position: "absolute", top: 8, left: 8, color: "#0f0", whiteSpace: "pre-wrap" }} />
+    </div>
+  )
+}
+
+// === DATA GALLERY, SISWA & RUNDOWN ===
 const photos = [
   "/foto1.jpeg", "/foto2.jpeg", "/foto3.jpeg", "/foto4.jpeg", "/foto5.jpeg",
   "/foto6.jpeg", "/foto7.jpeg", "/foto8.jpeg", "/foto9.jpeg", "/foto10.jpeg",
@@ -72,20 +193,20 @@ const rundownData = [
       { time: "13.00-20.00", desc: "Perjalanan kembali ke MAN 4", transport: "Big Bus" }
     ]
   }
-];
+]
 
 // === KOMPONEN SLIDER FASILITAS (HOTEL & BIS) ===
 const FacilitySlider = ({ images, title, onImageClick }: { images: string[], title: string, onImageClick: (img: string) => void }) => {
-  const [idx, setIdx] = useState(0);
-  
-  const next = (e: React.MouseEvent) => { 
-    e.stopPropagation(); 
-    setIdx((prev) => (prev + 1) % images.length); 
-  };
-  const prev = (e: React.MouseEvent) => { 
-    e.stopPropagation(); 
-    setIdx((prev) => (prev - 1 + images.length) % images.length); 
-  };
+  const [idx, setIdx] = useState(0)
+
+  const next = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIdx((prev) => (prev + 1) % images.length)
+  }
+  const prev = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIdx((prev) => (prev - 1 + images.length) % images.length)
+  }
 
   return (
     <div className="flex flex-col w-full bg-black/20 p-3 rounded-2xl border border-white/10 shadow-inner">
@@ -98,26 +219,25 @@ const FacilitySlider = ({ images, title, onImageClick }: { images: string[], tit
           🔍 {idx + 1}/{images.length}
         </div>
       </div>
-      {/* Dots Indicator */}
       <div className="flex justify-center gap-1.5 mt-3">
         {images.map((_, i) => (
           <div key={i} className={`h-1.5 rounded-full transition-all ${idx === i ? "w-5 bg-cyan-400" : "w-1.5 bg-white/30"}`} />
         ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default function ShaderBackgroundDemo() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [aboutSubTab, setAboutSubTab] = useState<"tentang" | "rundown" | "destinasi">("tentang")
-  
+
   const [students, setStudents] = useState<any[]>([])
   const [transactions, setTransactions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   const [selectedStudentId, setSelectedStudentId] = useState("")
   const [amount, setAmount] = useState("")
   const [paymentMethod, setPaymentMethod] = useState("Transfer Bank")
@@ -134,10 +254,18 @@ export default function ShaderBackgroundDemo() {
           studentList.push({ id: docSnap.id, ...docSnap.data() })
         })
 
-        if (studentList.length === 0) {
-          for (const name of GH27_STUDENTS) {
+        // Smart Sync: Tambah nama baru dari kodingan tanpa menghapus saldo lama
+        const existingNames = studentList.map((s) => s.name)
+        let hasNewStudent = false
+
+        for (const name of GH27_STUDENTS) {
+          if (!existingNames.includes(name)) {
             await addDoc(collection(db, "students"), { name: name, totalSaved: 0 })
+            hasNewStudent = true
           }
+        }
+
+        if (hasNewStudent) {
           const res = await getDocs(collection(db, "students"))
           studentList = []
           res.forEach((d) => studentList.push({ id: d.id, ...d.data() }))
@@ -151,7 +279,7 @@ export default function ShaderBackgroundDemo() {
         })
         let cleanStudents = Array.from(uniqueStudentsMap.values())
         cleanStudents.sort((a, b) => a.name.localeCompare(b.name))
-        
+
         setStudents(cleanStudents)
         if (cleanStudents.length > 0) setSelectedStudentId(cleanStudents[0].id)
 
@@ -195,7 +323,7 @@ export default function ShaderBackgroundDemo() {
           const MAX_HEIGHT = 800
           let width = img.width
           let height = img.height
-          
+
           if (width > height) {
             if (width > MAX_WIDTH) {
               height = Math.round((height * MAX_WIDTH) / width)
@@ -226,11 +354,11 @@ export default function ShaderBackgroundDemo() {
       if (!studentDoc) return
       const currentTotal = studentDoc.totalSaved || 0
       const newTotal = currentTotal + Number(amount)
-      const currentDate = new Date().toLocaleDateString("id-ID", { day: 'numeric', month: 'short', year: 'numeric' })
-      
+      const currentDate = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+
       const studentRef = doc(db, "students", selectedStudentId)
       await updateDoc(studentRef, { totalSaved: newTotal })
-      
+
       const newTx = {
         studentName: studentDoc.name,
         amount: Number(amount),
@@ -238,9 +366,9 @@ export default function ShaderBackgroundDemo() {
         method: paymentMethod,
         proof: proofImage || "Tidak ada foto"
       }
-      
+
       const docRef = await addDoc(collection(db, "transactions"), newTx)
-      
+
       setStudents(students.map((s) => s.id === selectedStudentId ? { ...s, totalSaved: newTotal } : s))
       setTransactions([{ id: docRef.id, ...newTx }, ...transactions])
       setSuccessMessage(`Berhasil mengirim setoran Rp${Number(amount).toLocaleString("id-ID")} untuk ${studentDoc.name}!`)
@@ -260,10 +388,12 @@ export default function ShaderBackgroundDemo() {
   return (
     <div className="relative min-h-screen w-full text-white selection:bg-cyan-500 selection:text-black">
       
+      {/* FIXED SHADER BACKGROUND (ATC) */}
       <div className="fixed top-0 left-0 w-full h-[100dvh] z-0 pointer-events-none bg-black overflow-hidden transform-gpu">
-        <ShaderBackground className="h-full w-full" />
+        <ShaderDemo_ATC />
       </div>
 
+      {/* NAVBAR */}
       <header className="fixed top-0 left-0 w-full z-50 px-4 py-4 md:px-12">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-5 py-3 bg-black/40 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] rounded-full">
           <div onClick={() => scrollToSection("home")} className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight cursor-pointer select-none">
@@ -301,7 +431,7 @@ export default function ShaderBackgroundDemo() {
         {/* HOME SECTION */}
         <section id="home" className="scroll-mt-32 flex flex-col items-center text-center">
           <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-300 tracking-wider uppercase">
-            ANGKATAN 27 • ASRAMA MAN 4 JAKARTA
+            ANGKATAN 27 ASRAMA MAN 4 JAKARTA
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-3">
             Memories & Journey of <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GH27</span>
@@ -400,17 +530,17 @@ export default function ShaderBackgroundDemo() {
                 <h3 className="text-xl font-bold text-cyan-300">Destinasi Utama</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/greencanyon.jpg")} />
+                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer" onClick={() => setPreviewImage("/greencanyon.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Green Canyon</div>
                     <p className="text-xs text-white/70">Sungai & tebing eksotis</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/madasari.jpg")} />
+                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer" onClick={() => setPreviewImage("/madasari.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Pantai Madasari</div>
                     <p className="text-xs text-white/70">Pantai pesisir luas</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5" onClick={() => setPreviewImage("/citumang.jpg")} />
+                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer" onClick={() => setPreviewImage("/citumang.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Citumang</div>
                     <p className="text-xs text-white/70">Body rafting air jernih</p>
                   </div>
@@ -424,7 +554,7 @@ export default function ShaderBackgroundDemo() {
         <section id="payment" className="scroll-mt-28 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Form Setoran Tabungan</h2>
-            <p className="text-white/60 text-xs sm:text-sm mt-1">Pilih namamu dari 81 anggota asrama & upload bukti transfer</p>
+            <p className="text-white/60 text-xs sm:text-sm mt-1">Pilih namamu dari anggota asrama & upload bukti transfer</p>
           </div>
 
           <div className="w-full max-w-lg bg-black/45 backdrop-blur-xl border border-white/20 p-6 sm:p-8 rounded-3xl shadow-2xl text-white">
@@ -491,13 +621,13 @@ export default function ShaderBackgroundDemo() {
         {/* MONEY SAVES SECTION */}
         <section id="money-saves" className="scroll-mt-28">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-green-400">Rekapitulasi Tabungan 81 Siswa</h2>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-green-400">Rekapitulasi Tabungan Siswa</h2>
             <p className="text-white/60 text-xs sm:text-sm mt-1">Transparansi total saldo anggota asrama & riwayat transaksi masuk</p>
           </div>
 
           <div className="w-full bg-black/45 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-3xl shadow-2xl text-white">
             {loading ? (
-              <p className="text-center text-white/60 py-8">Memuat data 81 siswa...</p>
+              <p className="text-center text-white/60 py-8">Memuat data siswa...</p>
             ) : (
               <div className="space-y-10">
                 <div>
@@ -580,7 +710,7 @@ export default function ShaderBackgroundDemo() {
 
       {/* POPUP MODAL PREVIEW */}
       {previewImage && (
-        <div onClick={() => setPreviewImage(null)} className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer z-[100]">
+        <div onClick={() => setPreviewImage(null)} className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 cursor-pointer z-[100]">
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
             <button onClick={() => setPreviewImage(null)} className="absolute -top-12 right-0 text-white bg-white/20 hover:bg-white/40 border border-white/20 rounded-full w-10 h-10 flex items-center justify-center font-bold text-sm transition-all shadow-lg">✕</button>
             <img src={previewImage} alt="Preview Zoom" className="max-w-full max-h-[85vh] object-contain rounded-2xl border border-white/20 shadow-2xl bg-black/50" />
