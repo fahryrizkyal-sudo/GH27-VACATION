@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react"
 import { db } from "@/app/firebase"
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore"
 
-// === PASTE URL WEB APP GOOGLE APPS SCRIPT LU DI SINI ===
+// === URL WEB APP GOOGLE APPS SCRIPT ===
 const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby-QO9AdIO2c9pgG3DYAQTfCuCdZKQXNVcnCTtVgp0OoXY5P5Tn7yuDt5b3_NPRoGzN/exec"
 const TARGET_PER_PERSON = 1150000
 
@@ -557,21 +557,36 @@ export default function ShaderBackgroundDemo() {
             {aboutSubTab === "destinasi" && (
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-cyan-300">Destinasi Utama</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-center">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 text-center">
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer" onClick={() => setPreviewImage("/greencanyon.jpg")} />
+                    <img src="/greencanyon.jpg" alt="Green Canyon" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer hover:scale-105 transition-transform" onClick={() => setPreviewImage("/greencanyon.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Green Canyon</div>
                     <p className="text-xs text-white/70">Sungai & tebing eksotis</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer" onClick={() => setPreviewImage("/madasari.jpg")} />
+                    <img src="/madasari.jpg" alt="Pantai Madasari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer hover:scale-105 transition-transform" onClick={() => setPreviewImage("/madasari.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Pantai Madasari</div>
                     <p className="text-xs text-white/70">Pantai pesisir luas</p>
                   </div>
                   <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
-                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer" onClick={() => setPreviewImage("/citumang.jpg")} />
+                    <img src="/citumang.jpg" alt="Citumang" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer hover:scale-105 transition-transform" onClick={() => setPreviewImage("/citumang.jpg")} />
                     <div className="font-bold text-yellow-300 text-base mb-1">Citumang</div>
                     <p className="text-xs text-white/70">Body rafting air jernih</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
+                    <img src="/legokpari.jpg" alt="Pantai Legok Pari" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer hover:scale-105 transition-transform" onClick={() => setPreviewImage("/legokpari.jpg")} />
+                    <div className="font-bold text-yellow-300 text-base mb-1">Pantai Legok Pari</div>
+                    <p className="text-xs text-white/70">Pantai landai & ombak tenang</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
+                    <img src="/batukaras.jpg" alt="Pantai Batu Karas" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer hover:scale-105 transition-transform" onClick={() => setPreviewImage("/batukaras.jpg")} />
+                    <div className="font-bold text-yellow-300 text-base mb-1">Pantai Batu Karas</div>
+                    <p className="text-xs text-white/70">Spot santai & tebing karang</p>
+                  </div>
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 overflow-hidden flex flex-col items-center">
+                    <img src="/batununggul.jpg" alt="Pantai Batu Nunggul" className="w-full h-32 object-cover rounded-xl mb-3 shadow-md border border-white/5 cursor-pointer hover:scale-105 transition-transform" onClick={() => setPreviewImage("/batununggul.jpg")} />
+                    <div className="font-bold text-yellow-300 text-base mb-1">Pantai Batu Nunggul</div>
+                    <p className="text-xs text-white/70">Tebing ikonik pinggir pantai</p>
                   </div>
                 </div>
               </div>
