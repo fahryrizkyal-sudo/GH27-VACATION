@@ -3,7 +3,11 @@ import React, { useState, useEffect, useRef } from "react"
 import { db } from "@/app/firebase"
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore"
 
-// === SHADER BACKGROUND BARU (ATC) ===
+// === PASTE URL WEB APP GOOGLE APPS SCRIPT LU DI SINI ===
+const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby-QO9AdIO2c9pgG3DYAQTfCuCdZKQXNVcnCTtVgp0OoXY5P5Tn7yuDt5b3_NPRoGzN/exec"
+const TARGET_PER_PERSON = 1150000
+
+// === SHADER BACKGROUND (ATC) ===
 const vertSrc = `#version 300 es
 precision highp float;
 layout(location=0) in vec2 a_pos;
@@ -119,7 +123,7 @@ function ShaderDemo_ATC() {
   return (
     <div style={{ position: "relative", width: "100%", height: "100%" }}>
       <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block", background: "#000" }} />
-      <pre ref={preRef} style={{ position: "absolute", top: 8, left: 8, color: "#0f0", whiteSpace: "pre-wrap" }} />
+      <pre ref={preRef} style={{ position: "absolute", top: 8, left: 8, color: "#fff", whiteSpace: "pre-wrap" }} />
     </div>
   )
 }
@@ -354,7 +358,16 @@ export default function ShaderBackgroundDemo() {
       if (!studentDoc) return
       const currentTotal = studentDoc.totalSaved || 0
       const newTotal = currentTotal + Number(amount)
-      const currentDate = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+      const now = new Date()
+      const currentDate = now.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
+      const sheetTimestamp = now.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      })
 
       const studentRef = doc(db, "students", selectedStudentId)
       await updateDoc(studentRef, { totalSaved: newTotal })
@@ -368,6 +381,23 @@ export default function ShaderBackgroundDemo() {
       }
 
       const docRef = await addDoc(collection(db, "transactions"), newTx)
+
+      // Kirim laporan otomatis (Waktu & Nominal saja) ke Google Sheets pribadi
+      if (GOOGLE_SHEETS_WEBHOOK_URL) {
+        try {
+          await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain" },
+            body: JSON.stringify({
+              waktu: sheetTimestamp,
+              nominal: Number(amount)
+            })
+          })
+        } catch (sheetErr) {
+          console.error("Gagal kirim log ke Google Sheets:", sheetErr)
+        }
+      }
 
       setStudents(students.map((s) => s.id === selectedStudentId ? { ...s, totalSaved: newTotal } : s))
       setTransactions([{ id: docRef.id, ...newTx }, ...transactions])
@@ -396,9 +426,8 @@ export default function ShaderBackgroundDemo() {
       {/* NAVBAR */}
       <header className="fixed top-0 left-0 w-full z-50 px-4 py-4 md:px-12">
         <nav className="max-w-6xl mx-auto flex items-center justify-between px-5 py-3 bg-black/40 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)] rounded-full">
-          <div onClick={() => scrollToSection("home")} className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight cursor-pointer select-none">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500">GH27</span>
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-green-400 via-cyan-400 to-blue-500 ml-1.5">Vacation</span>
+          <div onClick={() => scrollToSection("home")} className="text-xl sm:text-2xl md:text-3xl font-black tracking-tight cursor-pointer select-none text-white">
+            GH27 Vacation
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-white/90 font-semibold text-sm">
@@ -433,8 +462,8 @@ export default function ShaderBackgroundDemo() {
           <div className="inline-block px-4 py-1.5 mb-4 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-semibold text-cyan-300 tracking-wider uppercase">
             ANGKATAN 27 ASRAMA MAN 4 JAKARTA
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-3">
-            Memories & Journey of <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400">GH27</span>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight mb-3 text-white">
+            Memories & Journey of <span className="text-white">GH27</span>
           </h1>
           <p className="text-white/70 text-sm sm:text-base max-w-xl mb-8">
             Dokumentasi kebersamaan, informasi perjalanan, dan transparansi tabungan angkatan sebelum melangkah ke jenjang berikutnya.
@@ -477,10 +506,10 @@ export default function ShaderBackgroundDemo() {
                 <div className="bg-white/5 border border-white/10 p-4 sm:p-5 rounded-2xl mt-4">
                   <h4 className="font-semibold text-yellow-300 mb-3">Fasilitas Akomodasi:</h4>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-white/85 text-sm mb-6">
-                    <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Tempat Penginapan (Villa)</li>
-                    <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Bus Pariwisata</li>
-                    <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Makan & Minum (8 Kali)</li>
-                    <li className="flex items-center gap-2"><span className="text-green-400">✓</span> Tiket Pariwisata & Snack</li>
+                    <li className="flex items-center gap-2"><span className="text-white">✓</span> Tempat Penginapan (Villa)</li>
+                    <li className="flex items-center gap-2"><span className="text-white">✓</span> Bus Pariwisata</li>
+                    <li className="flex items-center gap-2"><span className="text-white">✓</span> Makan & Minum (8 Kali)</li>
+                    <li className="flex items-center gap-2"><span className="text-white">✓</span> Tiket Pariwisata & Snack</li>
                   </ul>
 
                   {/* SLIDER HOTEL DAN BIS */}
@@ -558,8 +587,14 @@ export default function ShaderBackgroundDemo() {
           </div>
 
           <div className="w-full max-w-lg bg-black/45 backdrop-blur-xl border border-white/20 p-6 sm:p-8 rounded-3xl shadow-2xl text-white">
+            {/* INFO TARGET UANG PER ORANG */}
+            <div className="mb-5 p-4 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-between">
+              <span className="text-xs sm:text-sm text-white/80 font-medium">Total Uang Dikumpulkan / Orang</span>
+              <span className="text-base sm:text-lg font-extrabold text-white">Rp {TARGET_PER_PERSON.toLocaleString("id-ID")}</span>
+            </div>
+
             {successMessage && (
-              <div className="mb-5 p-3.5 bg-green-500/20 border border-green-500 text-green-300 text-xs sm:text-sm rounded-2xl text-center font-medium">{successMessage}</div>
+              <div className="mb-5 p-3.5 bg-white/15 border border-white/30 text-white text-xs sm:text-sm rounded-2xl text-center font-medium">{successMessage}</div>
             )}
             
             <form onSubmit={handlePaymentSubmit} className="space-y-4">
@@ -607,7 +642,7 @@ export default function ShaderBackgroundDemo() {
                 {proofImage && (
                   <div className="mt-3 flex items-center gap-3 bg-white/5 p-2.5 rounded-xl border border-white/10">
                     <img src={proofImage} alt="Preview" className="w-12 h-12 object-cover rounded-lg border border-white/20" />
-                    <span className="text-xs text-green-400 font-medium">✓ Bukti siap dikirim</span>
+                    <span className="text-xs text-white font-medium">✓ Bukti siap dikirim</span>
                   </div>
                 )}
               </div>
@@ -621,11 +656,17 @@ export default function ShaderBackgroundDemo() {
         {/* MONEY SAVES SECTION */}
         <section id="money-saves" className="scroll-mt-28">
           <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-green-400">Rekapitulasi Tabungan Siswa</h2>
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Rekapitulasi Tabungan Siswa</h2>
             <p className="text-white/60 text-xs sm:text-sm mt-1">Transparansi total saldo anggota asrama & riwayat transaksi masuk</p>
           </div>
 
           <div className="w-full bg-black/45 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-3xl shadow-2xl text-white">
+            {/* INFO TARGET UANG PER ORANG */}
+            <div className="mb-8 p-4 rounded-2xl bg-white/10 border border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-center sm:text-left">
+              <span className="text-xs sm:text-sm text-white/80 font-medium">Total Uang yang Harus Dikumpulkan Per Orang</span>
+              <span className="text-base sm:text-lg font-extrabold text-white">Rp {TARGET_PER_PERSON.toLocaleString("id-ID")}</span>
+            </div>
+
             {loading ? (
               <p className="text-center text-white/60 py-8">Memuat data siswa...</p>
             ) : (
@@ -652,7 +693,7 @@ export default function ShaderBackgroundDemo() {
                             <tr key={s.id} className="hover:bg-white/5 transition-colors">
                               <td className="py-2.5 px-4 text-white/60">{index + 1}</td>
                               <td className="py-2.5 px-4 font-medium">{s.name}</td>
-                              <td className="py-2.5 px-4 text-green-400 font-semibold whitespace-nowrap">Rp {(s.totalSaved || 0).toLocaleString("id-ID")}</td>
+                              <td className="py-2.5 px-4 text-white font-semibold whitespace-nowrap">Rp {(s.totalSaved || 0).toLocaleString("id-ID")}</td>
                             </tr>
                           ))
                         )}
@@ -682,7 +723,7 @@ export default function ShaderBackgroundDemo() {
                             <tr key={tx.id} className="hover:bg-white/5 transition-colors">
                               <td className="py-2.5 px-4 text-white/70 whitespace-nowrap">{tx.date}</td>
                               <td className="py-2.5 px-4 font-medium">{tx.studentName}</td>
-                              <td className="py-2.5 px-4 text-green-400 font-semibold whitespace-nowrap">Rp {(tx.amount || 0).toLocaleString("id-ID")}</td>
+                              <td className="py-2.5 px-4 text-white font-semibold whitespace-nowrap">Rp {(tx.amount || 0).toLocaleString("id-ID")}</td>
                               <td className="py-2.5 px-4 text-white/80">{tx.method}</td>
                               <td className="py-2.5 px-4">
                                 {tx.proof && tx.proof !== "Tidak ada foto" ? (
