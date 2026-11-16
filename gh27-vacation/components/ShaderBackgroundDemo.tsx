@@ -1,10 +1,11 @@
 "use client"
 import React, { useState, useEffect, useRef } from "react"
 import { db } from "@/app/firebase"
-import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore"
+import { collection, getDocs, getDoc, addDoc, updateDoc, doc, setDoc, deleteDoc } from "firebase/firestore"
 
-// === URL WEB APP GOOGLE APPS SCRIPT ===
+// === KONFIGURASI ADMIN & GOOGLE SHEETS ===
 const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycby-QO9AdIO2c9pgG3DYAQTfCuCdZKQXNVcnCTtVgp0OoXY5P5Tn7yuDt5b3_NPRoGzN/exec"
+const ADMIN_PIN = "gh27admin" // <-- Ganti PIN rahasia lu di sini
 const TARGET_PER_PERSON = 1150000
 
 // === SHADER BACKGROUND (ATC) ===
@@ -136,7 +137,7 @@ const photos = [
 ]
 
 const GH27_STUDENTS = [
-  "ABRISAM YAHYA", "AGHNIY AQILAH", "AIRA FATHINA ZUHDI", "AISHA NASHIFA", "AISHAKIRANA MAULIDA SUBARKAH",
+  "ABRISAM YAHYA", "AGHNIY AQILAH", "AISHA NASHIFA", "AISHAKIRANA MAULIDA SUBARKAH",
   "AISYA NABILA", "ALTHAF AQIELA WICAKSONO", "ALVARO PRANADHAFA LANDRYE", "ANNIDA MAHRUS",
   "ARIF NOFRIZALDI SAPUTRA", "ATHA SHAKILA ARANI", "ATSIRAH ZAKIAH ARRINI MOHANDEZ",
   "AURELIA ERVIANI", "CARISSA HANUN DIANDRA BAHTIAR", "CHOKY FII RAMADHANI",
@@ -251,40 +252,76 @@ export default function ShaderBackgroundDemo() {
   const [errorMessage, setErrorMessage] = useState("")
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const hasSyncedRef = useRef(false)
+
+  // === STATE ADMIN ACC ===
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [showAdminModal, setShowAdminModal] = useState(false)
+  const [pinInput, setPinInput] = useState("")
+  const [pinError, setPinError] = useState("")
+  const [processingTxId, setProcessingTxId] = useState<string | null>(null)
 
   useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem("gh27_admin") === "true") {
+      setIsAdmin(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (hasSyncedRef.current) return
+    hasSyncedRef.current = true
+
     const fetchData = async () => {
       try {
         const studentSnap = await getDocs(collection(db, "students"))
-        let studentList: any[] = []
+        const groupedByName = new Map<string, any[]>()
+
         studentSnap.forEach((docSnap) => {
-          studentList.push({ id: docSnap.id, ...docSnap.data() })
+          const data = docSnap.data()
+          const cleanName = (data.name || "").trim()
+          if (!cleanName) return
+          if (!groupedByName.has(cleanName)) {
+            groupedByName.set(cleanName, [])
+          }
+          groupedByName.get(cleanName)!.push({ id: docSnap.id, ...data, name: cleanName })
         })
 
-        // Smart Sync: Tambah nama baru dari kodingan tanpa menghapus saldo lama
-        const existingNames = studentList.map((s) => s.name)
-        let hasNewStudent = false
+        let needsRefetch = false
 
-        for (const name of GH27_STUDENTS) {
-          if (!existingNames.includes(name)) {
-            await addDoc(collection(db, "students"), { name: name, totalSaved: 0 })
-            hasNewStudent = true
+        // 1. Auto-Merge & Cleanup: Gabungkan saldo duplikat & gunakan nama siswa sebagai Document ID
+        for (const [name, docs] of groupedByName.entries()) {
+          const hasDuplicates = docs.length > 1
+          const hasRandomId = docs.some((d) => d.id !== name)
+
+          if (hasDuplicates || hasRandomId) {
+            const mergedTotal = docs.reduce((sum, d) => sum + (Number(d.totalSaved) || 0), 0)
+            await setDoc(doc(db, "students", name), { name, totalSaved: mergedTotal })
+            for (const d of docs) {
+              if (d.id !== name) {
+                await deleteDoc(doc(db, "students", d.id))
+              }
+            }
+            needsRefetch = true
           }
         }
 
-        if (hasNewStudent) {
+        // 2. Smart Sync: Tambah nama baru dari kodingan tanpa menimpa saldo lama
+        for (const rawName of GH27_STUDENTS) {
+          const name = rawName.trim()
+          if (!groupedByName.has(name)) {
+            await setDoc(doc(db, "students", name), { name, totalSaved: 0 })
+            needsRefetch = true
+          }
+        }
+
+        let cleanStudents: any[] = []
+        if (needsRefetch) {
           const res = await getDocs(collection(db, "students"))
-          studentList = []
-          res.forEach((d) => studentList.push({ id: d.id, ...d.data() }))
+          res.forEach((d) => cleanStudents.push({ id: d.id, ...d.data() }))
+        } else {
+          groupedByName.forEach((docs) => cleanStudents.push(docs[0]))
         }
 
-        const uniqueStudentsMap = new Map()
-        studentList.forEach((s) => {
-          if (!uniqueStudentsMap.has(s.name)) {
-            uniqueStudentsMap.set(s.name, s)
-          }
-        })
-        let cleanStudents = Array.from(uniqueStudentsMap.values())
         cleanStudents.sort((a, b) => a.name.localeCompare(b.name))
 
         setStudents(cleanStudents)
@@ -357,6 +394,7 @@ export default function ShaderBackgroundDemo() {
     reader.readAsDataURL(file)
   }
 
+  // === SUBMIT FORM -> MASUK ANTREAN PENDING ===
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isSubmitting) return
@@ -377,43 +415,101 @@ export default function ShaderBackgroundDemo() {
     try {
       const studentDoc = students.find((s) => s.id === selectedStudentId)
       if (!studentDoc) return
-      const currentTotal = studentDoc.totalSaved || 0
-      const newTotal = currentTotal + Number(amount)
       const now = new Date()
       const currentDate = now.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })
-      const sheetTimestamp = now.toLocaleString("id-ID", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      })
-
-      const studentRef = doc(db, "students", selectedStudentId)
-      await updateDoc(studentRef, { totalSaved: newTotal })
 
       const newTx = {
+        studentId: studentDoc.id,
         studentName: studentDoc.name,
         amount: Number(amount),
         date: currentDate,
         method: paymentMethod,
         proof: proofImage,
+        status: "pending", // Wajib di-ACC admin dulu
         createdAt: Date.now()
       }
 
       const docRef = await addDoc(collection(db, "transactions"), newTx)
 
-      // Kirim laporan otomatis (Waktu & Nominal saja) ke Google Sheets pribadi
+      setTransactions([{ id: docRef.id, ...newTx }, ...transactions])
+      setSuccessMessage(`Setoran Rp${Number(amount).toLocaleString("id-ID")} untuk ${studentDoc.name} berhasil dikirim! Menunggu ACC admin sebelum masuk ke rekap.`)
+      setAmount("")
+      setProofImage("")
+      if (fileInputRef.current) fileInputRef.current.value = ""
+      setTimeout(() => setSuccessMessage(""), 5000)
+    } catch (error) {
+      console.error("Gagal mengirim setoran:", error)
+      setErrorMessage("Terjadi kesalahan saat mengirim ke database. Coba lagi.")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // === AKSI ADMIN: LOGIN, ACC, & TOLAK ===
+  const handleAdminButtonClick = () => {
+    setMobileMenuOpen(false)
+    setPinError("")
+    setShowAdminModal(true)
+  }
+
+  const handlePinSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (pinInput === ADMIN_PIN) {
+      setIsAdmin(true)
+      sessionStorage.setItem("gh27_admin", "true")
+      setPinInput("")
+      setPinError("")
+    } else {
+      setPinError("PIN Admin salah!")
+    }
+  }
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false)
+    sessionStorage.removeItem("gh27_admin")
+    setShowAdminModal(false)
+  }
+
+  const handleApproveTx = async (tx: any) => {
+    if (!isAdmin || processingTxId) return
+    setProcessingTxId(tx.id)
+
+    try {
+      const targetStudentId = tx.studentId || tx.studentName
+      const studentRef = doc(db, "students", targetStudentId)
+      const studentSnap = await getDoc(studentRef)
+
+      const currentTotal = studentSnap.exists()
+        ? (Number(studentSnap.data().totalSaved) || 0)
+        : (Number(students.find((s) => s.name === tx.studentName)?.totalSaved) || 0)
+
+      const newTotal = currentTotal + Number(tx.amount)
+
+      // 1. Update saldo siswa
+      await setDoc(studentRef, { name: tx.studentName, totalSaved: newTotal }, { merge: true })
+
+      // 2. Ubah status transaksi jadi approved
+      const txRef = doc(db, "transactions", tx.id)
+      await updateDoc(txRef, { status: "approved", approvedAt: Date.now() })
+
+      // 3. Kirim log (Waktu & Nominal saja) ke Google Sheets
       if (GOOGLE_SHEETS_WEBHOOK_URL) {
         try {
+          const sheetTimestamp = new Date().toLocaleString("id-ID", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          })
           await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "text/plain" },
             body: JSON.stringify({
               waktu: sheetTimestamp,
-              nominal: Number(amount)
+              nominal: Number(tx.amount)
             })
           })
         } catch (sheetErr) {
@@ -421,24 +517,39 @@ export default function ShaderBackgroundDemo() {
         }
       }
 
-      setStudents(students.map((s) => s.id === selectedStudentId ? { ...s, totalSaved: newTotal } : s))
-      setTransactions([{ id: docRef.id, ...newTx }, ...transactions])
-      setSuccessMessage(`Berhasil mengirim setoran Rp${Number(amount).toLocaleString("id-ID")} untuk ${studentDoc.name}!`)
-      setAmount("")
-      setProofImage("")
-      if (fileInputRef.current) fileInputRef.current.value = ""
-      setTimeout(() => setSuccessMessage(""), 4000)
+      // 4. Update state lokal
+      setStudents(students.map((s) => s.name === tx.studentName ? { ...s, totalSaved: newTotal } : s))
+      setTransactions(transactions.map((t) => t.id === tx.id ? { ...t, status: "approved" } : t))
     } catch (error) {
-      console.error("Gagal menyimpan pembayaran:", error)
-      setErrorMessage("Terjadi kesalahan saat menyimpan ke database. Coba lagi.")
+      console.error("Gagal ACC transaksi:", error)
+      alert("Gagal meng-ACC transaksi. Coba lagi.")
     } finally {
-      setIsSubmitting(false)
+      setProcessingTxId(null)
+    }
+  }
+
+  const handleRejectTx = async (tx: any) => {
+    if (!isAdmin || processingTxId) return
+    if (!window.confirm(`Tolak dan hapus setoran Rp${Number(tx.amount).toLocaleString("id-ID")} dari ${tx.studentName}?`)) return
+
+    setProcessingTxId(tx.id)
+    try {
+      await deleteDoc(doc(db, "transactions", tx.id))
+      setTransactions(transactions.filter((t) => t.id !== tx.id))
+    } catch (error) {
+      console.error("Gagal menolak transaksi:", error)
+      alert("Gagal menghapus transaksi. Coba lagi.")
+    } finally {
+      setProcessingTxId(null)
     }
   }
 
   const filteredStudents = students.filter((s) =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const pendingTransactions = transactions.filter((tx) => tx.status === "pending")
+  const approvedTransactions = transactions.filter((tx) => tx.status !== "pending")
 
   const canSubmit = !isSubmitting && Boolean(proofImage) && Boolean(amount) && Number(amount) > 0
 
@@ -457,19 +568,43 @@ export default function ShaderBackgroundDemo() {
             GH27 Vacation
           </div>
 
-          <div className="hidden md:flex items-center gap-8 text-white/90 font-semibold text-sm">
+          <div className="hidden md:flex items-center gap-7 text-white/90 font-semibold text-sm">
             <button onClick={() => scrollToSection("home")} className="hover:text-cyan-400 transition-colors cursor-pointer">Home</button>
             <button onClick={() => scrollToSection("about")} className="hover:text-cyan-400 transition-colors cursor-pointer">About</button>
             <button onClick={() => scrollToSection("payment")} className="hover:text-cyan-400 transition-colors cursor-pointer">Payment</button>
             <button onClick={() => scrollToSection("money-saves")} className="hover:text-cyan-400 transition-colors cursor-pointer">Money Saves</button>
+            <button
+              onClick={handleAdminButtonClick}
+              className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <span>{isAdmin ? "🔓 Admin" : "🔒 Admin"}</span>
+              {pendingTransactions.length > 0 && (
+                <span className="bg-amber-400 text-black text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                  {pendingTransactions.length}
+                </span>
+              )}
+            </button>
           </div>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold tracking-wide text-white transition-all"
-          >
-            {mobileMenuOpen ? "✕ Tutup" : "☰ Menu"}
-          </button>
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={handleAdminButtonClick}
+              className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold text-white flex items-center gap-1 transition-all"
+            >
+              <span>{isAdmin ? "🔓" : "🔒"}</span>
+              {pendingTransactions.length > 0 && (
+                <span className="bg-amber-400 text-black text-[10px] font-black px-1.5 rounded-full">
+                  {pendingTransactions.length}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-bold tracking-wide text-white transition-all"
+            >
+              {mobileMenuOpen ? "✕ Tutup" : "☰ Menu"}
+            </button>
+          </div>
         </nav>
 
         {mobileMenuOpen && (
@@ -478,6 +613,14 @@ export default function ShaderBackgroundDemo() {
             <button onClick={() => scrollToSection("about")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">About & Rundown</button>
             <button onClick={() => scrollToSection("payment")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">Payment (Setor)</button>
             <button onClick={() => scrollToSection("money-saves")} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-white">Money Saves (Rekap)</button>
+            <button onClick={handleAdminButtonClick} className="w-full text-left px-4 py-3 rounded-2xl hover:bg-white/10 font-semibold text-sm text-amber-300 flex items-center justify-between">
+              <span>{isAdmin ? "🔓 Panel ACC Admin" : "🔒 Login Admin ACC"}</span>
+              {pendingTransactions.length > 0 && (
+                <span className="bg-amber-400 text-black text-xs font-black px-2 py-0.5 rounded-full">
+                  {pendingTransactions.length} Pending
+                </span>
+              )}
+            </button>
           </div>
         )}
       </header>
@@ -710,7 +853,7 @@ export default function ShaderBackgroundDemo() {
         <section id="money-saves" className="scroll-mt-28">
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white">Rekapitulasi Tabungan Siswa</h2>
-            <p className="text-white/60 text-xs sm:text-sm mt-1">Transparansi total saldo anggota asrama & riwayat transaksi masuk</p>
+            <p className="text-white/60 text-xs sm:text-sm mt-1">Transparansi total saldo anggota asrama & riwayat transaksi yang sudah di-ACC</p>
           </div>
 
           <div className="w-full bg-black/45 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-3xl shadow-2xl text-white">
@@ -756,7 +899,14 @@ export default function ShaderBackgroundDemo() {
                 </div>
 
                 <div>
-                  <h3 className="text-base font-bold text-cyan-300 mb-4">Riwayat Seluruh Setoran Masuk</h3>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <h3 className="text-base font-bold text-cyan-300">Riwayat Seluruh Setoran Masuk (Terverifikasi)</h3>
+                    {pendingTransactions.length > 0 && (
+                      <span className="text-xs bg-amber-500/20 border border-amber-400/40 text-amber-200 px-3 py-1 rounded-full">
+                        ⏳ {pendingTransactions.length} setoran menunggu ACC admin
+                      </span>
+                    )}
+                  </div>
                   <div className="overflow-x-auto max-h-72 overflow-y-auto rounded-2xl border border-white/10">
                     <table className="w-full text-left border-collapse">
                       <thead>
@@ -769,10 +919,10 @@ export default function ShaderBackgroundDemo() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/10 text-xs sm:text-sm">
-                        {transactions.length === 0 ? (
-                          <tr><td colSpan={5} className="py-6 text-center text-white/50">Belum ada riwayat transaksi.</td></tr>
+                        {approvedTransactions.length === 0 ? (
+                          <tr><td colSpan={5} className="py-6 text-center text-white/50">Belum ada transaksi yang di-ACC.</td></tr>
                         ) : (
-                          transactions.map((tx) => (
+                          approvedTransactions.map((tx) => (
                             <tr key={tx.id} className="hover:bg-white/5 transition-colors">
                               <td className="py-2.5 px-4 text-white/70 whitespace-nowrap">{tx.date}</td>
                               <td className="py-2.5 px-4 font-medium">{tx.studentName}</td>
@@ -801,6 +951,128 @@ export default function ShaderBackgroundDemo() {
       <footer className="relative z-10 border-t border-white/10 bg-black/40 backdrop-blur-md py-6 text-center text-xs text-white/50">
         © 2026 fahryrizky.my.id
       </footer>
+
+      {/* MODAL PANEL ADMIN ACC */}
+      {showAdminModal && (
+        <div
+          onClick={() => setShowAdminModal(false)}
+          className="fixed inset-0 bg-black/85 backdrop-blur-xl flex items-center justify-center p-4 z-[90]"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl bg-zinc-900/95 border border-white/20 rounded-3xl p-6 sm:p-7 shadow-2xl text-white max-h-[88vh] flex flex-col"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-5">
+              <div>
+                <h3 className="text-lg sm:text-xl font-extrabold text-white">
+                  {isAdmin ? "Panel Verifikasi & ACC Setoran" : "Login Admin GH27"}
+                </h3>
+                <p className="text-xs text-white/60 mt-0.5">
+                  {isAdmin ? "Cek bukti transfer sebelum memasukkan ke pencatatan & Google Sheets" : "Khusus Fahry untuk verifikasi pembayaran"}
+                </p>
+              </div>
+              <button
+                onClick={() => setShowAdminModal(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {!isAdmin ? (
+              <form onSubmit={handlePinSubmit} className="space-y-4">
+                {pinError && (
+                  <div className="p-3 rounded-xl bg-red-500/20 border border-red-400/40 text-red-200 text-xs text-center font-medium">
+                    {pinError}
+                  </div>
+                )}
+                <div>
+                  <label className="block text-xs font-semibold text-white/80 mb-1.5">Masukkan PIN Admin</label>
+                  <input
+                    type="password"
+                    autoFocus
+                    placeholder="••••••"
+                    value={pinInput}
+                    onChange={(e) => setPinInput(e.target.value)}
+                    className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-black font-bold rounded-xl text-sm cursor-pointer hover:opacity-90 transition-all"
+                >
+                  Buka Panel ACC
+                </button>
+              </form>
+            ) : (
+              <div className="flex flex-col flex-1 overflow-hidden">
+                <div className="overflow-y-auto space-y-3 pr-1 flex-1">
+                  {pendingTransactions.length === 0 ? (
+                    <div className="py-12 text-center text-white/50 text-sm">
+                      Tidak ada setoran yang menunggu ACC saat ini.
+                    </div>
+                  ) : (
+                    pendingTransactions.map((tx) => (
+                      <div
+                        key={tx.id}
+                        className="bg-white/5 border border-white/15 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          {tx.proof && tx.proof !== "Tidak ada foto" && (
+                            <img
+                              src={tx.proof}
+                              alt="Bukti Transfer"
+                              onClick={() => setPreviewImage(tx.proof)}
+                              className="w-16 h-16 object-cover rounded-xl border border-white/25 cursor-pointer hover:scale-105 transition-transform shrink-0"
+                              title="Klik untuk perbesar bukti"
+                            />
+                          )}
+                          <div>
+                            <div className="font-bold text-sm text-white">{tx.studentName}</div>
+                            <div className="text-base font-extrabold text-cyan-300 mt-0.5">
+                              Rp {(tx.amount || 0).toLocaleString("id-ID")}
+                            </div>
+                            <div className="text-[11px] text-white/60 mt-1">
+                              {tx.date} • {tx.method}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => handleRejectTx(tx)}
+                            disabled={processingTxId === tx.id}
+                            className="px-3.5 py-2 rounded-xl bg-red-500/20 hover:bg-red-500/35 border border-red-400/40 text-red-200 text-xs font-bold cursor-pointer disabled:opacity-40 transition-all"
+                          >
+                            ✕ Tolak
+                          </button>
+                          <button
+                            onClick={() => handleApproveTx(tx)}
+                            disabled={processingTxId === tx.id}
+                            className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-extrabold cursor-pointer disabled:opacity-40 transition-all shadow-md"
+                          >
+                            {processingTxId === tx.id ? "Memproses..." : "✓ ACC"}
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="border-t border-white/10 pt-4 mt-4 flex items-center justify-between">
+                  <span className="text-xs text-white/50">Total antrean: {pendingTransactions.length}</span>
+                  <button
+                    onClick={handleAdminLogout}
+                    className="text-xs text-white/70 hover:text-white underline cursor-pointer"
+                  >
+                    Kunci / Logout Admin
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* POPUP MODAL PREVIEW */}
       {previewImage && (
