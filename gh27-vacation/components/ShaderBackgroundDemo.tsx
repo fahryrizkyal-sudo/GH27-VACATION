@@ -246,6 +246,20 @@ export default function ShaderBackgroundDemo() {
   const [selectedStudentId, setSelectedStudentId] = useState("")
   const [amount, setAmount] = useState("")
   const [paymentMethod, setPaymentMethod] = useState("Transfer Bank")
+  const [copiedRek, setCopiedRek] = useState(false)
+
+  // === GANTI DATA REKENING LU DI SINI ===
+  const BANK_INFO = {
+    bankName: "BANK JAGO", // Ganti nama bank lu (misal: BCA, Mandiri, BNI, BRI, SeaBank)
+    accountNumber: "100696675504", // Ganti dengan nomor rekening asli lu
+    accountHolder: "FAHRY RIZKY ALFATAN" // Sesuaikan atas nama rekening
+  }
+
+  const handleCopyRek = () => {
+    navigator.clipboard.writeText(BANK_INFO.accountNumber)
+    setCopiedRek(true)
+    setTimeout(() => setCopiedRek(false), 2000)
+  }
   const [proofImage, setProofImage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
@@ -811,6 +825,36 @@ export default function ShaderBackgroundDemo() {
                 </select>
               </div>
 
+{paymentMethod === "Transfer Bank" && (
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 space-y-2.5 transition-all">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-white/70">Tujuan Transfer</span>
+                    <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                      {BANK_INFO.bankName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between bg-black/40 px-3.5 py-2.5 rounded-xl border border-white/10">
+                    <div>
+                      <p className="text-[11px] text-white/50">Nomor Rekening</p>
+                      <p className="text-base sm:text-lg font-mono font-extrabold tracking-wider text-white">
+                        {BANK_INFO.accountNumber}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyRek}
+                      className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black text-xs font-bold transition-all cursor-pointer shrink-0"
+                    >
+                      {copiedRek ? "✓ Tersalin" : "Salin"}
+                    </button>
+                  </div>
+
+                  <div className="text-xs text-white/80">
+                    a.n. <span className="font-bold text-white">{BANK_INFO.accountHolder}</span>
+                  </div>
+                </div>
+              )}
               {paymentMethod === "QRIS" && (
                 <div className="flex flex-col items-center bg-white/5 p-4 rounded-2xl border border-white/10 transition-all">
                   <p className="text-xs text-white/80 mb-3 font-medium">Scan QRIS di bawah ini:</p>
