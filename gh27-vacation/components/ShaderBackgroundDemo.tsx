@@ -166,7 +166,7 @@ const GH27_STUDENTS = [
 
 const rundownData = [
   {
-    day: "Hari 1",
+    day: "Hari 1 (2 Mei 2027)",
     activities: [
       { time: "04.30–05.30", desc: "Kumpul di MAN 4 Jakarta", note: "Absensi dan persiapan keberangkatan" },
       { time: "05.30–06.00", desc: "Briefing dan naik bus", note: "Pastikan seluruh peserta dan barang sudah masuk" },
@@ -181,7 +181,7 @@ const rundownData = [
     ]
   },
   {
-    day: "Hari 2",
+    day: "Hari 2 (3 Mei 2027)",
     activities: [
       { time: "06.00–07.00", desc: "Bangun dan sarapan", note: "" },
       { time: "07.00–08.00", desc: "Perjalanan menuju Green Canyon", note: "Estimasi perjalanan" },
@@ -196,7 +196,7 @@ const rundownData = [
     ]
   },
   {
-    day: "Hari 3",
+    day: "Hari 3 (4 Mei 2027)",
     activities: [
       { time: "06.00–07.00", desc: "Bangun dan sarapan", note: "" },
       { time: "07.00–08.00", desc: "Persiapan dan perjalanan ke Citumang", note: "Estimasi perjalanan" },
