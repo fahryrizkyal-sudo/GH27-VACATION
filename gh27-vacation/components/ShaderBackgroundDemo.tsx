@@ -166,39 +166,49 @@ const GH27_STUDENTS = [
 
 const rundownData = [
   {
-    day: "Day 1",
+    day: "Hari 1",
     activities: [
-      { time: "06.00-14.00", desc: "Perjalanan Jakarta → villa", transport: "Big Bus" },
-      { time: "14.00-15.30", desc: "Istirahat / check-in", transport: "Villa" },
-      { time: "15.30-16.00", desc: "Perjalanan ke Pantai Madasari", transport: "Big Bus" },
-      { time: "16.00-18.30", desc: "Pantai Madasari", transport: "-" },
-      { time: "18.30-19.15", desc: "Kembali ke villa", transport: "Big Bus" },
-      { time: "19.15-06.00", desc: "Makan malam & istirahat", transport: "Villa" }
+      { time: "04.30–05.30", desc: "Kumpul di MAN 4 Jakarta", note: "Absensi dan persiapan keberangkatan" },
+      { time: "05.30–06.00", desc: "Briefing dan naik bus", note: "Pastikan seluruh peserta dan barang sudah masuk" },
+      { time: "06.00–10.30", desc: "Perjalanan Jakarta–Tasikmalaya", note: "Estimasi; menyesuaikan kondisi lalu lintas dan istirahat" },
+      { time: "10.30–11.00", desc: "Tiba di area Gunung Galunggung", note: "Persiapan dan koordinasi dengan operator jeep" },
+      { time: "11.00–13.00", desc: "Jeep Adventure Gunung Galunggung", note: "Durasi aktivitas jeep 2 jam" },
+      { time: "13.00–14.00", desc: "Makan siang", note: "Istirahat dan makan" },
+      { time: "14.00–17.30", desc: "Perjalanan Tasikmalaya–Pangandaran", note: "Estimasi; dapat berubah sesuai kondisi jalan" },
+      { time: "17.30–18.30", desc: "Check-in villa dan pembagian kamar", note: "Beres-beres dan istirahat" },
+      { time: "18.30–19.30", desc: "Makan malam", note: "" },
+      { time: "19.30–21.00", desc: "Waktu bebas dan istirahat", note: "Persiapan kegiatan hari kedua" }
     ]
   },
   {
-    day: "Day 2",
+    day: "Hari 2",
     activities: [
-      { time: "07.30-08.00", desc: "Perjalanan ke Green Canyon", transport: "Big Bus" },
-      { time: "08.00-12.00", desc: "Green Canyon", transport: "Perahu" },
-      { time: "12.00-13.00", desc: "Makan siang / perjalanan", transport: "Big Bus" },
-      { time: "13.00-18.00", desc: "Free time / Batu Karas", transport: "-" },
-      { time: "18.00-20.00", desc: "ISHOMA / makan malam", transport: "Villa" },
-      { time: "20.00-23.30", desc: "Farewell + BBQ + api unggun", transport: "Villa" },
-      { time: "23.30-06.00", desc: "Istirahat", transport: "Villa" }
+      { time: "06.00–07.00", desc: "Bangun dan sarapan", note: "" },
+      { time: "07.00–08.00", desc: "Perjalanan menuju Green Canyon", note: "Estimasi perjalanan" },
+      { time: "08.00–09.30", desc: "Green Canyon – wisata perahu", note: "Paket perahu reguler; bukan body rafting" },
+      { time: "09.30–10.00", desc: "Bilas dan persiapan", note: "" },
+      { time: "10.00–11.00", desc: "Makan siang", note: "" },
+      { time: "12.00–15.00", desc: "Kembali ke villa dan istirahat", note: "Waktu bebas di pantai" },
+      { time: "15.00–18.30", desc: "Pantai Madasari dan Pantai Batu Hiu", note: "" },
+      { time: "18.30–19.00", desc: "Perjalanan kembali ke hotel", note: "Persiapan acara malam" },
+      { time: "18.30–19.30", desc: "Makan malam", note: "" },
+      { time: "19.30–22.00", desc: "Farewell Night, BBQ, dan campfire", note: "Acara kebersamaan" }
     ]
   },
   {
-    day: "Day 3",
+    day: "Hari 3",
     activities: [
-      { time: "06.30-07.20", desc: "Perjalanan ke Citumang", transport: "Big Bus" },
-      { time: "07.20-10.20", desc: "Citumang / body rafting", transport: "-" },
-      { time: "10.20-11.00", desc: "Kembali ke villa", transport: "Big Bus" },
-      { time: "11.00-13.00", desc: "Persiapan pulang / check-out", transport: "Villa" },
-      { time: "13.00-20.00", desc: "Perjalanan kembali ke MAN 4", transport: "Big Bus" }
+      { time: "06.00–07.00", desc: "Bangun dan sarapan", note: "" },
+      { time: "07.00–08.00", desc: "Persiapan dan perjalanan ke Citumang", note: "Estimasi perjalanan" },
+      { time: "08.00–11.00", desc: "Citumang – body rafting", note: "Ikuti arahan pemandu dan ketentuan keselamatan lokasi" },
+      { time: "11.00–12.00", desc: "Bilas dan makan siang", note: "" },
+      { time: "12.00–13.00", desc: "Kembali ke villa, packing, dan check-out", note: "" },
+      { time: "13.00–20.00", desc: "Perjalanan Pangandaran–Jakarta", note: "Estimasi; menyesuaikan kondisi lalu lintas dan waktu istirahat" },
+      { time: "20.00", desc: "Tiba di MAN 4 Jakarta", note: "Perkiraan waktu kedatangan" }
     ]
   }
 ]
+
 
 // === KOMPONEN SLIDER FASILITAS (HOTEL & BIS) ===
 const FacilitySlider = ({ images, title, onImageClick }: { images: string[], title: string, onImageClick: (img: string) => void }) => {
@@ -714,29 +724,43 @@ export default function ShaderBackgroundDemo() {
             )}
 
             {aboutSubTab === "rundown" && (
-              <div className="space-y-6 text-sm sm:text-base">
-                {rundownData.map((day, idx) => (
-                  <div key={idx} className="bg-white/5 p-4 sm:p-6 rounded-3xl border border-white/10">
-                    <h3 className="text-lg font-bold text-yellow-300 mb-4 border-b border-white/10 pb-2">{day.day}</h3>
-                    <div className="space-y-3">
-                      {day.activities.map((act, i) => (
-                        <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 w-full">
-                            <span className="text-cyan-300 font-mono text-xs sm:text-sm font-semibold shrink-0 sm:w-28">{act.time}</span>
-                            <span className="text-white/90 font-medium">{act.desc}</span>
-                          </div>
-                          {act.transport !== "-" && (
-                            <span className="text-[10px] sm:text-xs uppercase tracking-wider bg-black/40 px-2.5 py-1 rounded-md border border-white/10 text-white/60 whitespace-nowrap self-start sm:self-auto">
-                              {act.transport}
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-6">
+                  {rundownData.map((day, idx) => (
+                    <div key={idx} className="bg-white/5 p-4 sm:p-6 rounded-3xl border border-white/10">
+                      <h3 className="text-lg font-bold text-yellow-300 mb-4 border-b border-white/10 pb-2">{day.day}</h3>
+                      <div className="divide-y divide-white/5">
+                        {day.activities.map((act, i) => (
+                          <div key={i} className="flex flex-col sm:flex-row sm:items-start justify-between gap-1.5 sm:gap-4 py-3 px-2 rounded-xl hover:bg-white/5 transition-colors">
+                            <span className="text-cyan-300 font-mono text-xs sm:text-sm font-semibold shrink-0 sm:w-32 pt-0.5">
+                              {act.time}
                             </span>
-                          )}
-                        </div>
-                      ))}
+                            <div className="flex-1">
+                              <div className="text-white/95 font-semibold">{act.desc}</div>
+                              {act.note && (
+                                <p className="text-xs text-white/60 mt-0.5 leading-relaxed">{act.note}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                {/* CATATAN PERJALANAN */}
+                <div className="bg-white/5 p-5 rounded-2xl border border-white/10 space-y-2">
+                  <h4 className="text-sm font-bold text-yellow-300">Catatan Perjalanan:</h4>
+                  <ul className="list-disc list-inside text-xs sm:text-sm text-white/80 space-y-1">
+                    <li>Durasi aktivitas Jeep Adventure di Gunung Galunggung adalah 2 jam.</li>
+                    <li>Waktu perjalanan bersifat estimasi dan dapat menyesuaikan dengan kondisi lalu lintas serta waktu istirahat.</li>
+                    <li>Wisata perahu di Green Canyon menggunakan paket perahu reguler (bukan body rafting).</li>
+                    <li>Aktivitas body rafting di Citumang dijadwalkan pada hari ketiga (ikuti arahan pemandu dan ketentuan keselamatan lokasi).</li>
+                  </ul>
+                </div>
               </div>
             )}
+}
 
             {aboutSubTab === "destinasi" && (
               <div className="space-y-4">
