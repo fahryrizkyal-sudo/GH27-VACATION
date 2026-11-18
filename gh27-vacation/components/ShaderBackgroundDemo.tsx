@@ -760,7 +760,6 @@ export default function ShaderBackgroundDemo() {
                 </div>
               </div>
             )}
-}
 
             {aboutSubTab === "destinasi" && (
               <div className="space-y-4">
